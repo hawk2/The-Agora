@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora — Strong Opinions, Loosely Held</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #358f65;
+      --blue:   #71a9f7;
+      --white:  #ffffff;
+      --navy:   #2e5077;
+      --red:    #A41623;
+      --cream:  #f5f0e8;
+      --ink:    #1a1a2e;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--ink); font-family: 'EB Garamond', Georgia, serif; font-size: 18px; line-height: 1.7; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(46,80,119,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(113,169,247,0.2); }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { height: 42px; width: 42px; object-fit: contain; }
+    .nav-logo-text { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-family: 'EB Garamond', serif; font-size: 15px; color: rgba(255,255,255,0.75); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta { display: flex; gap: 12px; }
+    .btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 8px 20px; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-block; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: #2a7552; }
+
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: linear-gradient(160deg, var(--navy) 0%, #1a2f47 60%, #0f1e30 100%); }
+    .hero-bg-lines { position: absolute; inset: 0; background-image: repeating-linear-gradient(90deg, rgba(113,169,247,0.03) 0px, rgba(113,169,247,0.03) 1px, transparent 1px, transparent 80px); pointer-events: none; }
+    .hero-color-bar { position: absolute; bottom: 80px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--red), var(--navy), var(--green), var(--blue)); opacity: 0.5; }
+    .hero-content { text-align: center; padding: 120px 24px 80px; max-width: 800px; position: relative; z-index: 2; }
+    .hero-eyebrow { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--blue); margin-bottom: 24px; animation: fadeUp 1s ease 0.2s both; }
+    .hero-title { font-family: 'Cinzel', serif; font-size: clamp(48px, 8vw, 88px); font-weight: 700; color: var(--white); line-height: 1.05; margin-bottom: 24px; animation: fadeUp 1s ease 0.3s both; }
+    .hero-title span { color: var(--blue); }
+    .hero-motto { font-family: 'EB Garamond', serif; font-style: italic; font-size: clamp(18px, 2.5vw, 24px); color: rgba(255,255,255,0.6); margin-bottom: 48px; animation: fadeUp 1s ease 0.4s both; }
+    .hero-motto cite { font-style: normal; font-size: 14px; color: rgba(255,255,255,0.35); display: block; margin-top: 6px; letter-spacing: 0.1em; }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeUp 1s ease 0.5s both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .btn-hero-primary { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 14px 36px; background: var(--green); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .btn-hero-primary:hover { background: #2a7552; transform: translateY(-2px); }
+    .btn-hero-outline { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 14px 36px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .btn-hero-outline:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-2px); }
+    .hero-divider { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to bottom, transparent, var(--cream)); }
+
+    /* DEBATES SECTION */
+    .debates-section { max-width: 1100px; margin: 0 auto; padding: 80px 48px; }
+    .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px; }
+    .section-label { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .section-title { font-family: 'Cinzel', serif; font-size: clamp(24px, 3vw, 36px); font-weight: 600; color: var(--navy); }
+    .new-debate-btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.1em; padding: 12px 28px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .new-debate-btn:hover { background: #1e3a5f; transform: translateY(-1px); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 80px 24px; border: 2px dashed rgba(46,80,119,0.15); border-radius: 4px; background: rgba(255,255,255,0.5); }
+    .empty-icon { font-size: 48px; margin-bottom: 20px; display: block; }
+    .empty-title { font-family: 'Cinzel', serif; font-size: 22px; color: var(--navy); margin-bottom: 12px; }
+    .empty-sub { font-size: 16px; color: #888; max-width: 440px; margin: 0 auto 32px; line-height: 1.6; }
+    .empty-btn { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 14px 36px; background: var(--green); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .empty-btn:hover { background: #2a7552; transform: translateY(-2px); }
+
+    /* DEBATE CARDS (shown when debates exist) */
+    .debates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .debate-card { background: white; border: 1px solid rgba(46,80,119,0.12); border-left: 4px solid var(--navy); border-radius: 3px; padding: 28px; cursor: pointer; transition: all 0.25s; text-decoration: none; display: block; color: inherit; }
+    .debate-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(46,80,119,0.1); border-left-color: var(--green); }
+    .card-category { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .card-title { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 600; color: var(--navy); line-height: 1.3; margin-bottom: 10px; }
+    .card-desc { font-size: 14px; color: #777; line-height: 1.6; margin-bottom: 18px; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px; font-size: 13px; }
+    .card-pills { display: flex; gap: 6px; }
+    .pill { font-family: 'Cinzel', serif; font-size: 10px; padding: 3px 10px; border-radius: 20px; }
+    .pill-for { background: rgba(53,143,101,0.1); color: var(--green); }
+    .pill-against { background: rgba(164,22,35,0.08); color: var(--red); }
+    .card-age { color: #bbb; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.05em; }
+
+    /* HOW IT WORKS */
+    .how-section { background: var(--navy); padding: 96px 48px; border-top: 4px solid var(--red); }
+    .how-inner { max-width: 1100px; margin: 0 auto; }
+    .how-section .section-label { color: var(--blue); }
+    .how-section .section-title { color: white; margin-bottom: 48px; }
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
+    .how-card { padding: 28px 22px; border: 1px solid rgba(113,169,247,0.15); border-radius: 3px; transition: border-color 0.2s; }
+    .how-card:hover { border-color: rgba(113,169,247,0.4); }
+    .how-number { font-family: 'Cinzel', serif; font-size: 36px; font-weight: 700; color: rgba(113,169,247,0.2); line-height: 1; margin-bottom: 14px; }
+    .how-card h3 { font-family: 'Cinzel', serif; font-size: 15px; color: white; margin-bottom: 8px; }
+    .how-card p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+    /* CTA */
+    .cta-section { background: linear-gradient(135deg, var(--green), #2a7552); text-align: center; padding: 96px 24px; }
+    .cta-section h2 { font-family: 'Cinzel', serif; font-size: clamp(26px, 4vw, 44px); color: white; margin-bottom: 14px; }
+    .cta-section p { color: rgba(255,255,255,0.7); font-size: 18px; margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .btn-cta { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 16px 44px; background: white; color: var(--green); border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+
+    /* FOOTER */
+    footer { background: var(--ink); color: rgba(255,255,255,0.4); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-logo { font-family: 'Cinzel', serif; font-size: 18px; color: white; letter-spacing: 0.08em; }
+    .footer-motto { font-style: italic; font-size: 14px; margin-top: 4px; }
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-family: 'Cinzel', serif; letter-spacing: 0.08em; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--blue); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .debates-section { padding: 60px 24px; }
+      .how-section { padding: 60px 24px; }
+      footer { flex-direction: column; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="/mnt/user-data/uploads/ChatGPT_Image_Feb_23__2026__11_50_27_AM.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="submit.html">Start a Debate</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Rules</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Sign In</a>
+      <a href="#" class="btn btn-primary">Join</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg-lines"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">A Forum for Honest Discourse</p>
+      <h1 class="hero-title">The <span>Agora</span></h1>
+      <div class="hero-motto">
+        "Strong opinions, loosely held."
+        <cite>— Paul Saffo</cite>
+      </div>
+      <div class="hero-actions">
+        <a href="submit.html" class="btn-hero-primary">Start a Debate</a>
+        <a href="#debates" class="btn-hero-outline">Browse Debates</a>
+      </div>
+    </div>
+    <div class="hero-color-bar"></div>
+    <div class="hero-divider"></div>
+  </section>
+
+  <!-- DEBATES -->
+  <section id="debates">
+    <div class="debates-section">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Open Now</p>
+          <h2 class="section-title">Active Debates</h2>
+        </div>
+        <a href="submit.html" class="new-debate-btn">+ Start a Debate</a>
+      </div>
+
+      <!-- EMPTY STATE (shown when no debates yet) -->
+      <div class="empty-state" id="empty-state">
+        <span class="empty-icon">⚖️</span>
+        <h3 class="empty-title">The floor is open.</h3>
+        <p class="empty-sub">No debates have been started yet. The Agora is yours — bring a question worth arguing about.</p>
+        <a href="submit.html" class="empty-btn">Start the First Debate</a>
+      </div>
+
+      <!-- DEBATE CARDS (hidden until debates exist) -->
+      <div class="debates-grid" id="debates-grid" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section">
+    <div class="how-inner">
+      <p class="section-label">The Method</p>
+      <h2 class="section-title">How The Agora Works</h2>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-number">01</div>
+          <h3>Start a Debate</h3>
+          <p>Pose a question worth arguing. State your position and what evidence would change your mind.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-number">02</div>
+          <h3>Take a Side</h3>
+          <p>Post an argument For or Against. Set your confidence level from 0–100%.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-number">03</div>
+          <h3>Engage Honestly</h3>
+          <p>Steelman the opposing view. Argue the strongest version of what you disagree with.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-number">04</div>
+          <h3>Update Publicly</h3>
+          <p>Changed your mind? The Hall of Fame honors those who updated their views with reasons.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Ready to Enter the Agora?</h2>
+    <p>Bring your convictions. Bring your doubts. Leave with something sharper.</p>
+    <a href="submit.html" class="btn-cta">Start a Debate</a>
+  </section>
+
+  <footer>
+    <div>
+      <div class="footer-logo">The Agora</div>
+      <div class="footer-motto">"Strong opinions, loosely held." — Paul Saffo</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="submit.html">Start a Debate</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Rules</a></li>
+    </ul>
+    <div style="font-size:13px;">© 2026 The Agora · Hawken Parkman</div>
+  </footer>
+
+  <script>
+/**
+ * store.js — The Agora
+ * In-memory data store. All posts, arguments, tags, and votes live here.
+ * Designed to be swapped out for Firebase with minimal changes.
+ * All pages communicate through window.AgoraStore.
+ */
+
+(function () {
+  'use strict';
+
+  // ── STORAGE KEYS ──
+  const POSTS_KEY   = 'agora_posts';
+  const ARGS_KEY    = 'agora_arguments';
+  const TAGS_KEY    = 'agora_tags';
+  const VOTES_KEY   = 'agora_votes';
+  const CURRENT_KEY = 'agora_current_post';
+
+  // ── HELPERS ──
+  function load(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
+  }
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { console.warn('Store save failed:', e); }
+  }
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function timeAgo(iso) {
+    const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (diff < 60)  return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
+    return Math.floor(diff / 86400) + ' days ago';
+  }
+
+  // ── DATA ──
+  let posts     = load(POSTS_KEY, []);
+  let args      = load(ARGS_KEY, {});   // { postId: [argument, ...] }
+  let allTags   = load(TAGS_KEY, [
+    'democracy', 'free speech', 'ethics', 'economics', 'philosophy',
+    'technology', 'AI', 'climate', 'justice', 'history', 'law', 'policy',
+    'science', 'religion', 'capitalism', 'equality', 'rights', 'education'
+  ]);
+  let votes     = load(VOTES_KEY, {}); // { argId: { up: 0, down: 0 } }
+
+  // ── POST CRUD ──
+
+  /**
+   * Create a new post (debate, discussion, or question).
+   * Returns the new post object.
+   */
+  function createPost({ type, title, body, tags, position, confidence, openingArgument, whatWouldChangeMyMind }) {
+    const post = {
+      id:          uid(),
+      type,        // 'debate' | 'discussion' | 'question'
+      title,
+      body,
+      tags:        tags || [],
+      position:    position || null,   // 'for' | 'against' | 'undecided' | null
+      confidence:  confidence || null,
+      whatWouldChangeMyMind: whatWouldChangeMyMind || null,
+      author:      'You',             // Replace with real user when auth exists
+      createdAt:   new Date().toISOString(),
+      argCount:    0,
+      forCount:    0,
+      againstCount: 0,
+      mindChanges: 0,
+    };
+
+    posts.unshift(post);
+    save(POSTS_KEY, posts);
+
+    // Register new tags
+    tags.forEach(t => { if (!allTags.includes(t)) allTags.push(t); });
+    save(TAGS_KEY, allTags);
+
+    // If there's an opening argument, add it
+    if (openingArgument && openingArgument.trim()) {
+      createArgument(post.id, {
+        side: position === 'for' || position === 'against' ? position : 'for',
+        body: openingArgument,
+        author: 'You',
+        whatWouldChangeMyMind,
+      });
+    }
+
+    return post;
+  }
+
+  function getPost(id) {
+    return posts.find(p => p.id === id) || null;
+  }
+
+  function getAllPosts() {
+    return [...posts];
+  }
+
+  function getPostsByType(type) {
+    return posts.filter(p => p.type === type);
+  }
+
+  // ── ARGUMENT CRUD ──
+
+  function createArgument(postId, { side, body, author, whatWouldChangeMyMind }) {
+    const arg = {
+      id:          uid(),
+      postId,
+      side,        // 'for' | 'against'
+      body,
+      author:      author || 'You',
+      createdAt:   new Date().toISOString(),
+      steelmanned: false,
+      steelmanCount: 0,
+    };
+
+    if (!args[postId]) args[postId] = [];
+    args[postId].unshift(arg);
+    save(ARGS_KEY, args);
+
+    // Update post counts
+    const post = getPost(postId);
+    if (post) {
+      post.argCount++;
+      if (side === 'for')     post.forCount++;
+      if (side === 'against') post.againstCount++;
+      save(POSTS_KEY, posts);
+    }
+
+    // Init votes
+    votes[arg.id] = { up: 0, down: 0, userVote: null };
+    save(VOTES_KEY, votes);
+
+    return arg;
+  }
+
+  function getArguments(postId) {
+    return args[postId] || [];
+  }
+
+  // ── VOTES ──
+
+  function vote(argId, dir) {
+    if (!votes[argId]) votes[argId] = { up: 0, down: 0, userVote: null };
+    const v = votes[argId];
+    if (v.userVote === dir) {
+      // undo
+      v[dir]--;
+      v.userVote = null;
+    } else {
+      if (v.userVote) v[v.userVote]--;
+      v[dir]++;
+      v.userVote = dir;
+    }
+    save(VOTES_KEY, votes);
+    return v;
+  }
+
+  function getVotes(argId) {
+    return votes[argId] || { up: 0, down: 0, userVote: null };
+  }
+
+  // ── STEELMAN ──
+
+  function toggleSteelman(argId) {
+    for (const postId in args) {
+      const arg = args[postId].find(a => a.id === argId);
+      if (arg) {
+        arg.steelmanned = !arg.steelmanned;
+        arg.steelmanCount += arg.steelmanned ? 1 : -1;
+        save(ARGS_KEY, args);
+        return arg.steelmanned;
+      }
+    }
+    return false;
+  }
+
+  // ── MIND CHANGE ──
+
+  function declareMindChange(postId, text) {
+    const post = getPost(postId);
+    if (post) {
+      post.mindChanges++;
+      save(POSTS_KEY, posts);
+    }
+    // In real app: store mind change record for Hall of Fame
+    console.log('Mind change declared for post', postId, ':', text);
+  }
+
+  // ── CURRENT POST (cross-page navigation) ──
+  // submit.html sets this; debate.html reads it.
+
+  function setCurrentPost(postId) {
+    save(CURRENT_KEY, postId);
+  }
+
+  function getCurrentPost() {
+    const id = load(CURRENT_KEY, null);
+    return id ? getPost(id) : null;
+  }
+
+  // ── TAGS ──
+
+  function getAllTags() {
+    return [...allTags];
+  }
+
+  // ── RENDER HELPERS ──
+  // Shared rendering logic used by both index.html and debate.html
+
+  function renderPostCard(post) {
+    const typeColors = {
+      debate:     { border: 'var(--red)',   badge: 'rgba(164,22,35,0.08)',   color: 'var(--red)' },
+      discussion: { border: 'var(--blue)',  badge: 'rgba(113,169,247,0.1)',  color: 'var(--blue)' },
+      question:   { border: 'var(--green)', badge: 'rgba(53,143,101,0.08)', color: 'var(--green)' },
+    };
+    const t = typeColors[post.type] || typeColors.discussion;
+    const tagHtml = post.tags.slice(0, 3).map(tag =>
+      `<span style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.08em;padding:3px 8px;border-radius:2px;background:rgba(46,80,119,0.08);color:var(--navy);">${tag}</span>`
+    ).join('');
+
+    return `
+      <a class="post-card" href="debate.html" onclick="AgoraStore.setCurrentPost('${post.id}'); return true;" style="
+        display:block; text-decoration:none; color:inherit;
+        background:white;
+        border:1px solid rgba(46,80,119,0.12);
+        border-left:4px solid ${t.border};
+        border-radius:3px;
+        padding:28px;
+        transition:all 0.25s;
+        cursor:pointer;
+      " onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 30px rgba(46,80,119,0.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:${t.badge};color:${t.color};">${post.type}</span>
+          ${tagHtml}
+        </div>
+        <div style="font-family:'Cinzel',serif;font-size:17px;font-weight:600;color:var(--navy);line-height:1.3;margin-bottom:10px;">${escHtml(post.title)}</div>
+        <div style="font-size:14px;color:#777;line-height:1.6;margin-bottom:18px;">${escHtml(post.body.slice(0, 140))}${post.body.length > 140 ? '…' : ''}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(0,0,0,0.06);padding-top:14px;font-size:13px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;gap:8px;">
+            ${post.type === 'debate' ? `
+              <span style="font-family:'Cinzel',serif;font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(53,143,101,0.1);color:var(--green);">${post.forCount} For</span>
+              <span style="font-family:'Cinzel',serif;font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(164,22,35,0.08);color:var(--red);">${post.againstCount} Against</span>
+            ` : `<span style="color:#aaa;">${post.argCount} ${post.argCount === 1 ? 'reply' : 'replies'}</span>`}
+          </div>
+          <span style="color:#bbb;font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.05em;">${timeAgo(post.createdAt)}</span>
+        </div>
+      </a>`;
+  }
+
+  function renderArgCard(arg, postId) {
+    const v = getVotes(arg.id);
+    const isFor = arg.side === 'for';
+    const borderColor = isFor ? 'var(--green)' : 'var(--red)';
+    const borderBg    = isFor ? 'rgba(53,143,101,0.15)' : 'rgba(164,22,35,0.12)';
+    const badgeClass  = isFor ? 'badge-for' : 'badge-against';
+    const sideLabel   = isFor ? 'For' : 'Against';
+    const initials    = arg.author.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const avatarBg    = isFor ? 'var(--green)' : 'var(--red)';
+
+    const steelHtml = arg.steelmanned
+      ? `<span class="steelman-badge">★ Steelmanned ×${arg.steelmanCount}</span>`
+      : '';
+
+    return `
+      <div class="arg-card ${arg.side}" id="arg-${arg.id}" style="border-left-color:${borderColor};border-color:${borderBg};">
+        <div class="arg-header">
+          <div class="arg-author">
+            <div class="avatar" style="background:${avatarBg};">${initials}</div>
+            <div class="arg-meta">
+              <span class="arg-name">${escHtml(arg.author)}</span>
+              <span class="arg-time">${timeAgo(arg.createdAt)}</span>
+            </div>
+          </div>
+          <span class="arg-side-badge ${badgeClass}">${sideLabel}</span>
+        </div>
+        <p class="arg-body">${escHtml(arg.body).replace(/\n/g, '<br>')}</p>
+        <div class="arg-footer">
+          <button class="arg-action steelman ${arg.steelmanned ? 'active' : ''}"
+            onclick="handleSteelman('${arg.id}', this)">⭐ ${arg.steelmanned ? 'Steelmanned' : 'Steelman'}</button>
+          ${steelHtml}
+          <div class="arg-votes">
+            <button class="vote-btn up ${v.userVote === 'up' ? 'active-up' : ''}"
+              onclick="handleVote('${arg.id}', 'up', this)">▲</button>
+            <span class="vote-count" id="votes-${arg.id}">${v.up - v.down}</span>
+            <button class="vote-btn down ${v.userVote === 'down' ? 'active-down' : ''}"
+              onclick="handleVote('${arg.id}', 'down', this)">▼</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── PUBLIC API ──
+  window.AgoraStore = {
+    // Posts
+    createPost,
+    getPost,
+    getAllPosts,
+    getPostsByType,
+    setCurrentPost,
+    getCurrentPost,
+
+    // Arguments
+    createArgument,
+    getArguments,
+
+    // Votes & steelman
+    vote,
+    getVotes,
+    toggleSteelman,
+
+    // Mind change
+    declareMindChange,
+
+    // Tags
+    getAllTags,
+
+    // Render helpers
+    renderPostCard,
+    renderArgCard,
+    timeAgo,
+    escHtml,
+  };
+
+  console.log('AgoraStore ready. Posts:', posts.length);
+})();
+
+</script>
+  <script>
+    function renderIndex() {
+      const posts = AgoraStore.getAllPosts();
+      const emptyState = document.getElementById('empty-state');
+      const grid = document.getElementById('debates-grid');
+      if (!posts.length) {
+        emptyState.style.display = 'block';
+        grid.style.display = 'none';
+        return;
+      }
+      emptyState.style.display = 'none';
+      grid.style.display = 'grid';
+      grid.innerHTML = posts.map(p => AgoraStore.renderPostCard(p)).join('');
+    }
+    renderIndex();
+  </script>
+
+</body>
+</html>

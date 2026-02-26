@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora — Debate</title>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #358f65;
+      --blue:   #71a9f7;
+      --white:  #ffffff;
+      --navy:   #2e5077;
+      --red:    #A41623;
+      --cream:  #f5f0e8;
+      --ink:    #1a1a2e;
+      --compose-h: 140px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.7;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      flex-shrink: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 60px;
+      background: rgba(46,80,119,0.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(113,169,247,0.2);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 36px; width: 36px; object-fit: contain; }
+    .nav-logo-text { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { font-family: 'EB Garamond', serif; font-size: 14px; color: rgba(255,255,255,0.7); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.08em; padding: 7px 18px; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: #2a7552; }
+
+    /* ── DEBATE HEADER (compact) ── */
+    .debate-header {
+      flex-shrink: 0;
+      background: linear-gradient(160deg, var(--navy) 0%, #1c3550 100%);
+      padding: 20px 40px 0;
+      position: relative;
+      animation: fadeDown 0.5s ease both;
+    }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .debate-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--navy) 50%, var(--green));
+    }
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .header-left { flex: 1; min-width: 0; }
+    .breadcrumb { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
+    .breadcrumb a { color: var(--blue); text-decoration: none; }
+    .debate-title { font-family: 'Cinzel', serif; font-size: clamp(16px, 2.2vw, 26px); font-weight: 700; color: var(--white); line-height: 1.25; margin-bottom: 6px; }
+    .debate-desc { font-size: 14px; color: rgba(255,255,255,0.5); font-style: italic; margin-bottom: 12px; }
+    .header-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tag-chip { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 2px; background: rgba(113,169,247,0.15); color: var(--blue); }
+
+    /* stats row inside header */
+    .header-stats {
+      display: flex;
+      gap: 0;
+      margin-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .hstat {
+      padding: 10px 20px 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      margin-right: 20px;
+    }
+    .hstat:last-child { border-right: none; }
+    .hstat-val { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: white; }
+    .hstat-lbl { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+
+    /* split bar inside header */
+    .split-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0 14px;
+      flex-wrap: wrap;
+    }
+    .split-track { flex: 1; min-width: 120px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; position: relative; }
+    .split-for-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: var(--green); border-radius: 3px 0 0 3px; transition: width 0.4s ease; }
+    .split-against-bar { position: absolute; right: 0; top: 0; bottom: 0; width: 0%; background: var(--red); border-radius: 0 3px 3px 0; transition: width 0.4s ease; }
+    .split-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; white-space: nowrap; }
+    .for-label { color: var(--green); }
+    .against-label { color: var(--red); }
+    .neutral-label { color: rgba(255,255,255,0.35); }
+
+    /* ── THREAD (fills remaining space) ── */
+    .thread-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 40px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .thread-empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: #aaa;
+      font-style: italic;
+      font-size: 15px;
+      margin: auto;
+    }
+
+    /* ── ARG CARD ── */
+    .arg-card {
+      background: white;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      border-left: 4px solid transparent;
+      padding: 18px 20px 14px;
+      transition: box-shadow 0.2s, transform 0.2s;
+      animation: slideUp 0.3s ease both;
+      flex-shrink: 0;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .arg-card.for { border-left-color: var(--green); border-color: rgba(53,143,101,0.15); }
+    .arg-card.against { border-left-color: var(--red); border-color: rgba(164,22,35,0.12); }
+    .arg-card:hover { box-shadow: 0 3px 16px rgba(0,0,0,0.07); }
+
+    .arg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .arg-author { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; }
+    .arg-name { font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600; color: var(--navy); letter-spacing: 0.05em; }
+    .arg-time { font-size: 12px; color: #bbb; margin-left: 6px; }
+    .arg-side-badge { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 9px; border-radius: 20px; }
+    .badge-for { background: rgba(53,143,101,0.1); color: var(--green); }
+    .badge-against { background: rgba(164,22,35,0.08); color: var(--red); }
+
+    .arg-body { font-size: 16px; line-height: 1.65; color: #2a2a2a; margin-bottom: 12px; }
+
+    .arg-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; }
+    .arg-action { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; background: none; border: 1px solid #e8e8e8; padding: 3px 9px; border-radius: 2px; cursor: pointer; transition: all 0.15s; }
+    .arg-action:hover { color: var(--navy); border-color: var(--navy); }
+    .arg-action.steelman:hover, .arg-action.steelman.active { color: var(--blue); border-color: var(--blue); background: rgba(113,169,247,0.08); }
+    .steelman-badge { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.12em; color: var(--blue); background: rgba(113,169,247,0.1); border: 1px solid rgba(113,169,247,0.2); padding: 2px 8px; border-radius: 2px; }
+    .arg-votes { display: flex; align-items: center; gap: 3px; font-family: 'Cinzel', serif; font-size: 12px; color: #bbb; margin-left: auto; }
+    .vote-btn { background: none; border: none; cursor: pointer; font-size: 12px; padding: 2px 4px; color: #ccc; transition: color 0.15s, transform 0.12s; }
+    .vote-btn:hover { transform: scale(1.25); }
+    .vote-btn.up:hover, .vote-btn.active-up { color: var(--green); }
+    .vote-btn.down:hover, .vote-btn.active-down { color: var(--red); }
+
+    /* ── COMPOSE BAR (pinned bottom) ── */
+    .compose-bar {
+      flex-shrink: 0;
+      background: white;
+      border-top: 1px solid rgba(46,80,119,0.12);
+      padding: 12px 40px 14px;
+      z-index: 50;
+    }
+
+    .compose-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(46,80,119,0.1);
+    }
+    .compose-tab {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 7px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #aaa;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-bottom: -1px;
+    }
+    .compose-tab.for.active  { color: var(--green); border-bottom-color: var(--green); }
+    .compose-tab.against.active { color: var(--red); border-bottom-color: var(--red); }
+    .compose-tab:hover { color: var(--navy); }
+
+    .compose-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .compose-textarea {
+      flex: 1;
+      font-family: 'EB Garamond', serif;
+      font-size: 16px;
+      padding: 10px 14px;
+      border: 1px solid rgba(46,80,119,0.2);
+      border-radius: 3px;
+      background: rgba(245,240,232,0.5);
+      color: var(--ink);
+      resize: none;
+      outline: none;
+      height: 56px;
+      transition: border-color 0.2s, height 0.2s;
+      line-height: 1.5;
+    }
+    .compose-textarea:focus { border-color: var(--navy); background: white; height: 80px; }
+
+    .compose-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .char-count { font-family: 'Cinzel', serif; font-size: 10px; color: #ccc; letter-spacing: 0.05em; }
+
+    .post-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: white;
+      white-space: nowrap;
+    }
+    .post-btn.for-btn { background: var(--green); }
+    .post-btn.for-btn:hover { background: #2a7552; }
+    .post-btn.against-btn { background: var(--red); }
+    .post-btn.against-btn:hover { background: #8a1020; }
+
+    /* locked hint inside compose */
+    .compose-locked-hint {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: #bbb;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* ── SIDEBAR DRAWER (position/mind change) ── */
+    .drawer-toggle {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 4px 0 0 4px;
+      padding: 12px 8px;
+      cursor: pointer;
+      z-index: 90;
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transition: background 0.2s;
+    }
+    .drawer-toggle:hover { background: #1e3a5f; }
+
+    .drawer {
+      position: fixed;
+      right: -340px;
+      top: 0; bottom: 0;
+      width: 320px;
+      background: white;
+      border-left: 1px solid rgba(46,80,119,0.12);
+      z-index: 200;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      padding: 24px;
+      padding-top: 70px;
+    }
+    .drawer.open { right: 0; }
+
+    .drawer-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    .drawer h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--navy);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(46,80,119,0.08);
+    }
+
+    .drawer-section {
+      margin-bottom: 28px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(46,80,119,0.08);
+    }
+    .drawer-section:last-child { border-bottom: none; }
+    .drawer-section.blue-top { border-top: 3px solid var(--blue); padding-top: 16px; }
+    .drawer-section.red-top  { border-top: 3px solid var(--red); padding-top: 16px; }
+    .drawer-section.green-top { border-top: 3px solid var(--green); padding-top: 16px; }
+
+    /* locked overlay */
+    .lock-msg { background: rgba(245,240,232,0.9); border: 1px dashed rgba(46,80,119,0.2); border-radius: 3px; padding: 14px; text-align: center; font-size: 13px; color: #888; line-height: 1.5; }
+    .lock-msg .lock-icon { font-size: 18px; display: block; margin-bottom: 5px; }
+    .lock-msg strong { display: block; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.08em; color: var(--navy); margin-bottom: 3px; }
+    .unlockable { display: none; }
+    .unlockable.on { display: block; }
+
+    /* position */
+    .pos-row { display: flex; gap: 6px; margin-bottom: 14px; }
+    .pos-btn { flex: 1; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.08em; padding: 8px 4px; border-radius: 2px; border: 1px solid transparent; cursor: pointer; transition: all 0.18s; text-align: center; }
+    .pos-btn.for-btn-s { background: rgba(53,143,101,0.08); color: var(--green); border-color: rgba(53,143,101,0.25); }
+    .pos-btn.for-btn-s:hover, .pos-btn.for-btn-s.active { background: var(--green); color: white; border-color: var(--green); }
+    .pos-btn.und-btn { background: rgba(46,80,119,0.06); color: var(--navy); border-color: rgba(46,80,119,0.15); }
+    .pos-btn.und-btn:hover, .pos-btn.und-btn.active { background: var(--navy); color: white; }
+    .pos-btn.against-btn-s { background: rgba(164,22,35,0.06); color: var(--red); border-color: rgba(164,22,35,0.18); }
+    .pos-btn.against-btn-s:hover, .pos-btn.against-btn-s.active { background: var(--red); color: white; }
+
+    .slider-row { display: flex; justify-content: space-between; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.05em; color: #aaa; margin-bottom: 5px; }
+    .conf-slider { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--green), var(--blue), var(--navy)); outline: none; }
+    .conf-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--navy); cursor: pointer; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .conf-display { text-align: center; font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; color: var(--navy); margin: 6px 0; }
+    .wwc-lbl { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #aaa; margin-bottom: 5px; margin-top: 12px; }
+    .wwc-input { width: 100%; font-family: 'EB Garamond', serif; font-size: 14px; padding: 8px 10px; border: 1px solid rgba(46,80,119,0.15); border-radius: 2px; color: var(--ink); outline: none; min-height: 56px; resize: vertical; background: rgba(245,240,232,0.4); }
+    .wwc-input:focus { border-color: var(--navy); background: white; }
+    .save-btn { margin-top: 10px; width: 100%; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; padding: 9px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; transition: background 0.18s; }
+    .save-btn:hover { background: #1e3a5f; }
+
+    /* mind change */
+    .mc-desc { font-size: 14px; color: #666; margin-bottom: 10px; line-height: 1.55; }
+    .mc-count { font-size: 13px; color: #aaa; margin-bottom: 12px; font-style: italic; }
+    .mc-btn { width: 100%; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; padding: 9px; background: transparent; color: var(--red); border: 1px solid var(--red); border-radius: 2px; cursor: pointer; transition: all 0.18s; }
+    .mc-btn:hover { background: var(--red); color: white; }
+
+    /* rules */
+    .rule-item { display: flex; gap: 8px; margin-bottom: 9px; font-size: 14px; color: #555; line-height: 1.5; }
+    .rule-num { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700; color: var(--green); flex-shrink: 0; margin-top: 2px; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.7); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: white; border-radius: 4px; padding: 36px; max-width: 500px; width: 90%; transform: translateY(16px); transition: transform 0.22s; position: relative; border-top: 4px solid var(--red); }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close { position: absolute; top: 14px; right: 18px; background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; }
+    .modal h2 { font-family: 'Cinzel', serif; font-size: 18px; color: var(--red); margin-bottom: 8px; }
+    .modal p { font-size: 14px; color: #666; margin-bottom: 16px; line-height: 1.6; }
+    .modal textarea { width: 100%; min-height: 100px; font-family: 'EB Garamond', serif; font-size: 15px; padding: 11px; border: 1px solid rgba(46,80,119,0.2); border-radius: 3px; resize: vertical; outline: none; margin-bottom: 14px; }
+    .modal textarea:focus { border-color: var(--navy); }
+    .modal-submit { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.1em; padding: 11px 26px; background: var(--red); color: white; border: none; border-radius: 2px; cursor: pointer; transition: background 0.18s; }
+    .modal-submit:hover { background: #8a1020; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--ink); color: white; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; padding: 10px 22px; border-radius: 2px; z-index: 400; transition: transform 0.28s ease; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; }
+      .nav-links { display: none; }
+      .debate-header { padding: 16px 16px 0; }
+      .thread-container { padding: 14px 16px; }
+      .compose-bar { padding: 10px 16px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="/mnt/user-data/uploads/ChatGPT_Image_Feb_23__2026__11_50_27_AM.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Rules</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-outline">Sign In</a>
+      <a href="#" class="btn btn-primary">Join</a>
+    </div>
+  </nav>
+
+  <!-- DEBATE HEADER -->
+  <div class="debate-header">
+    <div class="header-top">
+      <div class="header-left">
+        <div class="breadcrumb"><a href="index.html">Debates</a> › <span id="post-type-label">Debate</span></div>
+        <h1 class="debate-title" id="post-title">Loading...</h1>
+        <p class="debate-desc" id="post-body"></p>
+        <div class="header-tags" id="header-tags"></div>
+      </div>
+      <div class="header-stats">
+        <div class="hstat">
+          <span class="hstat-val" style="color:var(--green)" id="stat-for">0</span>
+          <span class="hstat-lbl">For</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-val" style="color:var(--red)" id="stat-against">0</span>
+          <span class="hstat-lbl">Against</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-val" style="color:var(--blue)" id="stat-args">0</span>
+          <span class="hstat-lbl">Args</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-val" id="stat-mc">0</span>
+          <span class="hstat-lbl">Mind Changes</span>
+        </div>
+      </div>
+    </div>
+    <div class="split-row">
+      <span class="split-label for-label" id="split-for-pct">0% For</span>
+      <div class="split-track">
+        <div class="split-for-bar" id="split-for-bar"></div>
+        <div class="split-against-bar" id="split-against-bar"></div>
+      </div>
+      <span class="split-label neutral-label" id="split-neutral-pct">100% Undecided</span>
+      <span class="split-label against-label" id="split-against-pct">0% Against</span>
+    </div>
+  </div>
+
+  <!-- THREAD -->
+  <div class="thread-container" id="thread">
+    <div class="thread-empty">No arguments yet — be the first to post below.</div>
+  </div>
+
+  <!-- COMPOSE BAR -->
+  <div class="compose-bar">
+    <div class="compose-tabs">
+      <button class="compose-tab for active" id="tab-for" onclick="switchTab('for')">✦ Argue For</button>
+      <button class="compose-tab against" id="tab-against" onclick="switchTab('against')">✦ Argue Against</button>
+    </div>
+    <div class="compose-row">
+      <textarea
+        class="compose-textarea"
+        id="post-textarea"
+        placeholder="Make your argument. Be precise."
+        oninput="updateCount()"
+      ></textarea>
+      <div class="compose-right">
+        <span class="char-count" id="char-count">0 / 800</span>
+        <button class="post-btn for-btn" id="submit-btn" onclick="postArgument()">Post — For ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER TOGGLE -->
+  <button class="drawer-toggle" onclick="toggleDrawer()">My Position &amp; Tools</button>
+
+  <!-- DRAWER -->
+  <div class="drawer" id="drawer">
+    <button class="drawer-close" onclick="toggleDrawer()">✕</button>
+
+    <!-- My Position -->
+    <div class="drawer-section blue-top">
+      <h3>My Position</h3>
+      <div id="pos-locked" class="lock-msg">
+        <span class="lock-icon">🔒</span>
+        <strong>Post First</strong>
+        Post an argument to unlock your confidence slider.
+      </div>
+      <div class="unlockable" id="pos-content">
+        <div class="pos-row">
+          <button class="pos-btn for-btn-s" onclick="selectPos(this)">For</button>
+          <button class="pos-btn und-btn active" onclick="selectPos(this)">Undecided</button>
+          <button class="pos-btn against-btn-s" onclick="selectPos(this)">Against</button>
+        </div>
+        <div class="slider-row"><span>Low confidence</span><span>High</span></div>
+        <input type="range" class="conf-slider" min="0" max="100" value="50" oninput="updateConf(this)">
+        <div class="conf-display" id="conf-display">50%</div>
+        <div class="wwc-lbl">What would change your mind?</div>
+        <textarea class="wwc-input" placeholder="e.g. Peer-reviewed evidence showing..."></textarea>
+        <button class="save-btn">Save Position</button>
+      </div>
+    </div>
+
+    <!-- Mind Change -->
+    <div class="drawer-section red-top">
+      <h3>Declare a Mind Change</h3>
+      <div id="mc-locked" class="lock-msg">
+        <span class="lock-icon">🔒</span>
+        <strong>Post First</strong>
+        Post an argument to unlock mind change declarations.
+      </div>
+      <div class="unlockable" id="mc-content">
+        <p class="mc-desc">Has this debate shifted your view? Mind changes earn Hall of Fame consideration.</p>
+        <p class="mc-count" id="mc-count">0 mind changes in this debate.</p>
+        <button class="mc-btn" onclick="openMindChange()">↻ My Mind Has Changed</button>
+      </div>
+    </div>
+
+    <!-- Rules -->
+    <div class="drawer-section green-top">
+      <h3>Debate Rules</h3>
+      <div class="rule-item"><span class="rule-num">I</span><span>Steelman before you rebut.</span></div>
+      <div class="rule-item"><span class="rule-num">II</span><span>State what would change your mind.</span></div>
+      <div class="rule-item"><span class="rule-num">III</span><span>Cite evidence where possible.</span></div>
+      <div class="rule-item"><span class="rule-num">IV</span><span>Attack ideas, never people.</span></div>
+    </div>
+  </div>
+
+  <!-- MIND CHANGE MODAL -->
+  <div class="modal-overlay" id="mindChangeModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeMindChange()">✕</button>
+      <h2>↻ Declare a Mind Change</h2>
+      <p>What argument moved you and how has your view shifted? Be specific.</p>
+      <textarea id="mc-textarea" placeholder="Describe what changed your mind..."></textarea>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <button class="modal-submit" onclick="submitMindChange()">Submit Mind Change</button>
+        <span style="font-size:12px;color:#aaa;">Reviewed for Hall of Fame.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+/**
+ * store.js — The Agora
+ * In-memory data store. All posts, arguments, tags, and votes live here.
+ * Designed to be swapped out for Firebase with minimal changes.
+ * All pages communicate through window.AgoraStore.
+ */
+
+(function () {
+  'use strict';
+
+  // ── STORAGE KEYS ──
+  const POSTS_KEY   = 'agora_posts';
+  const ARGS_KEY    = 'agora_arguments';
+  const TAGS_KEY    = 'agora_tags';
+  const VOTES_KEY   = 'agora_votes';
+  const CURRENT_KEY = 'agora_current_post';
+
+  // ── HELPERS ──
+  function load(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
+  }
+  function save(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { console.warn('Store save failed:', e); }
+  }
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function timeAgo(iso) {
+    const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (diff < 60)  return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' hr ago';
+    return Math.floor(diff / 86400) + ' days ago';
+  }
+
+  // ── DATA ──
+  let posts     = load(POSTS_KEY, []);
+  let args      = load(ARGS_KEY, {});   // { postId: [argument, ...] }
+  let allTags   = load(TAGS_KEY, [
+    'democracy', 'free speech', 'ethics', 'economics', 'philosophy',
+    'technology', 'AI', 'climate', 'justice', 'history', 'law', 'policy',
+    'science', 'religion', 'capitalism', 'equality', 'rights', 'education'
+  ]);
+  let votes     = load(VOTES_KEY, {}); // { argId: { up: 0, down: 0 } }
+
+  // ── POST CRUD ──
+
+  /**
+   * Create a new post (debate, discussion, or question).
+   * Returns the new post object.
+   */
+  function createPost({ type, title, body, tags, position, confidence, openingArgument, whatWouldChangeMyMind }) {
+    const post = {
+      id:          uid(),
+      type,        // 'debate' | 'discussion' | 'question'
+      title,
+      body,
+      tags:        tags || [],
+      position:    position || null,   // 'for' | 'against' | 'undecided' | null
+      confidence:  confidence || null,
+      whatWouldChangeMyMind: whatWouldChangeMyMind || null,
+      author:      'You',             // Replace with real user when auth exists
+      createdAt:   new Date().toISOString(),
+      argCount:    0,
+      forCount:    0,
+      againstCount: 0,
+      mindChanges: 0,
+    };
+
+    posts.unshift(post);
+    save(POSTS_KEY, posts);
+
+    // Register new tags
+    tags.forEach(t => { if (!allTags.includes(t)) allTags.push(t); });
+    save(TAGS_KEY, allTags);
+
+    // If there's an opening argument, add it
+    if (openingArgument && openingArgument.trim()) {
+      createArgument(post.id, {
+        side: position === 'for' || position === 'against' ? position : 'for',
+        body: openingArgument,
+        author: 'You',
+        whatWouldChangeMyMind,
+      });
+    }
+
+    return post;
+  }
+
+  function getPost(id) {
+    return posts.find(p => p.id === id) || null;
+  }
+
+  function getAllPosts() {
+    return [...posts];
+  }
+
+  function getPostsByType(type) {
+    return posts.filter(p => p.type === type);
+  }
+
+  // ── ARGUMENT CRUD ──
+
+  function createArgument(postId, { side, body, author, whatWouldChangeMyMind }) {
+    const arg = {
+      id:          uid(),
+      postId,
+      side,        // 'for' | 'against'
+      body,
+      author:      author || 'You',
+      createdAt:   new Date().toISOString(),
+      steelmanned: false,
+      steelmanCount: 0,
+    };
+
+    if (!args[postId]) args[postId] = [];
+    args[postId].unshift(arg);
+    save(ARGS_KEY, args);
+
+    // Update post counts
+    const post = getPost(postId);
+    if (post) {
+      post.argCount++;
+      if (side === 'for')     post.forCount++;
+      if (side === 'against') post.againstCount++;
+      save(POSTS_KEY, posts);
+    }
+
+    // Init votes
+    votes[arg.id] = { up: 0, down: 0, userVote: null };
+    save(VOTES_KEY, votes);
+
+    return arg;
+  }
+
+  function getArguments(postId) {
+    return args[postId] || [];
+  }
+
+  // ── VOTES ──
+
+  function vote(argId, dir) {
+    if (!votes[argId]) votes[argId] = { up: 0, down: 0, userVote: null };
+    const v = votes[argId];
+    if (v.userVote === dir) {
+      // undo
+      v[dir]--;
+      v.userVote = null;
+    } else {
+      if (v.userVote) v[v.userVote]--;
+      v[dir]++;
+      v.userVote = dir;
+    }
+    save(VOTES_KEY, votes);
+    return v;
+  }
+
+  function getVotes(argId) {
+    return votes[argId] || { up: 0, down: 0, userVote: null };
+  }
+
+  // ── STEELMAN ──
+
+  function toggleSteelman(argId) {
+    for (const postId in args) {
+      const arg = args[postId].find(a => a.id === argId);
+      if (arg) {
+        arg.steelmanned = !arg.steelmanned;
+        arg.steelmanCount += arg.steelmanned ? 1 : -1;
+        save(ARGS_KEY, args);
+        return arg.steelmanned;
+      }
+    }
+    return false;
+  }
+
+  // ── MIND CHANGE ──
+
+  function declareMindChange(postId, text) {
+    const post = getPost(postId);
+    if (post) {
+      post.mindChanges++;
+      save(POSTS_KEY, posts);
+    }
+    // In real app: store mind change record for Hall of Fame
+    console.log('Mind change declared for post', postId, ':', text);
+  }
+
+  // ── CURRENT POST (cross-page navigation) ──
+  // submit.html sets this; debate.html reads it.
+
+  function setCurrentPost(postId) {
+    save(CURRENT_KEY, postId);
+  }
+
+  function getCurrentPost() {
+    const id = load(CURRENT_KEY, null);
+    return id ? getPost(id) : null;
+  }
+
+  // ── TAGS ──
+
+  function getAllTags() {
+    return [...allTags];
+  }
+
+  // ── RENDER HELPERS ──
+  // Shared rendering logic used by both index.html and debate.html
+
+  function renderPostCard(post) {
+    const typeColors = {
+      debate:     { border: 'var(--red)',   badge: 'rgba(164,22,35,0.08)',   color: 'var(--red)' },
+      discussion: { border: 'var(--blue)',  badge: 'rgba(113,169,247,0.1)',  color: 'var(--blue)' },
+      question:   { border: 'var(--green)', badge: 'rgba(53,143,101,0.08)', color: 'var(--green)' },
+    };
+    const t = typeColors[post.type] || typeColors.discussion;
+    const tagHtml = post.tags.slice(0, 3).map(tag =>
+      `<span style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:0.08em;padding:3px 8px;border-radius:2px;background:rgba(46,80,119,0.08);color:var(--navy);">${tag}</span>`
+    ).join('');
+
+    return `
+      <a class="post-card" href="debate.html" onclick="AgoraStore.setCurrentPost('${post.id}')" style="
+        display:block; text-decoration:none; color:inherit;
+        background:white;
+        border:1px solid rgba(46,80,119,0.12);
+        border-left:4px solid ${t.border};
+        border-radius:3px;
+        padding:28px;
+        transition:all 0.25s;
+        cursor:pointer;
+      " onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 30px rgba(46,80,119,0.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:${t.badge};color:${t.color};">${post.type}</span>
+          ${tagHtml}
+        </div>
+        <div style="font-family:'Cinzel',serif;font-size:17px;font-weight:600;color:var(--navy);line-height:1.3;margin-bottom:10px;">${escHtml(post.title)}</div>
+        <div style="font-size:14px;color:#777;line-height:1.6;margin-bottom:18px;">${escHtml(post.body.slice(0, 140))}${post.body.length > 140 ? '…' : ''}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(0,0,0,0.06);padding-top:14px;font-size:13px;flex-wrap:wrap;gap:8px;">
+          <div style="display:flex;gap:8px;">
+            ${post.type === 'debate' ? `
+              <span style="font-family:'Cinzel',serif;font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(53,143,101,0.1);color:var(--green);">${post.forCount} For</span>
+              <span style="font-family:'Cinzel',serif;font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(164,22,35,0.08);color:var(--red);">${post.againstCount} Against</span>
+            ` : `<span style="color:#aaa;">${post.argCount} ${post.argCount === 1 ? 'reply' : 'replies'}</span>`}
+          </div>
+          <span style="color:#bbb;font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.05em;">${timeAgo(post.createdAt)}</span>
+        </div>
+      </a>`;
+  }
+
+  function renderArgCard(arg, postId) {
+    const v = getVotes(arg.id);
+    const isFor = arg.side === 'for';
+    const borderColor = isFor ? 'var(--green)' : 'var(--red)';
+    const borderBg    = isFor ? 'rgba(53,143,101,0.15)' : 'rgba(164,22,35,0.12)';
+    const badgeClass  = isFor ? 'badge-for' : 'badge-against';
+    const sideLabel   = isFor ? 'For' : 'Against';
+    const initials    = arg.author.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const avatarBg    = isFor ? 'var(--green)' : 'var(--red)';
+
+    const steelHtml = arg.steelmanned
+      ? `<span class="steelman-badge">★ Steelmanned ×${arg.steelmanCount}</span>`
+      : '';
+
+    return `
+      <div class="arg-card ${arg.side}" id="arg-${arg.id}" style="border-left-color:${borderColor};border-color:${borderBg};">
+        <div class="arg-header">
+          <div class="arg-author">
+            <div class="avatar" style="background:${avatarBg};">${initials}</div>
+            <div class="arg-meta">
+              <span class="arg-name">${escHtml(arg.author)}</span>
+              <span class="arg-time">${timeAgo(arg.createdAt)}</span>
+            </div>
+          </div>
+          <span class="arg-side-badge ${badgeClass}">${sideLabel}</span>
+        </div>
+        <p class="arg-body">${escHtml(arg.body).replace(/\n/g, '<br>')}</p>
+        <div class="arg-footer">
+          <button class="arg-action steelman ${arg.steelmanned ? 'active' : ''}"
+            onclick="handleSteelman('${arg.id}', this)">⭐ ${arg.steelmanned ? 'Steelmanned' : 'Steelman'}</button>
+          ${steelHtml}
+          <div class="arg-votes">
+            <button class="vote-btn up ${v.userVote === 'up' ? 'active-up' : ''}"
+              onclick="handleVote('${arg.id}', 'up', this)">▲</button>
+            <span class="vote-count" id="votes-${arg.id}">${v.up - v.down}</span>
+            <button class="vote-btn down ${v.userVote === 'down' ? 'active-down' : ''}"
+              onclick="handleVote('${arg.id}', 'down', this)">▼</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── PUBLIC API ──
+  window.AgoraStore = {
+    // Posts
+    createPost,
+    getPost,
+    getAllPosts,
+    getPostsByType,
+    setCurrentPost,
+    getCurrentPost,
+
+    // Arguments
+    createArgument,
+    getArguments,
+
+    // Votes & steelman
+    vote,
+    getVotes,
+    toggleSteelman,
+
+    // Mind change
+    declareMindChange,
+
+    // Tags
+    getAllTags,
+
+    // Render helpers
+    renderPostCard,
+    renderArgCard,
+    timeAgo,
+    escHtml,
+  };
+
+  console.log('AgoraStore ready. Posts:', posts.length);
+})();
+
+</script>
+  <script>
+    let currentSide = 'for';
+    let hasPosted = false;
+    let currentPost = null;
+    let drawerOpen = false;
+
+    // ── LOAD ──
+    function loadPost() {
+      currentPost = AgoraStore.getCurrentPost();
+      if (!currentPost) { window.location.href = 'index.html'; return; }
+
+      const typeLabel = currentPost.type.charAt(0).toUpperCase() + currentPost.type.slice(1);
+      document.getElementById('post-type-label').textContent = typeLabel;
+      document.title = 'The Agora — ' + currentPost.title;
+      document.getElementById('post-title').textContent = currentPost.title;
+      document.getElementById('post-body').textContent = currentPost.body;
+
+      if (currentPost.tags && currentPost.tags.length) {
+        document.getElementById('header-tags').innerHTML =
+          currentPost.tags.map(t => `<span class="tag-chip">${AgoraStore.escHtml(t)}</span>`).join('');
+      }
+
+      updateStats();
+      renderThread();
+    }
+
+    // ── STATS ──
+    function updateStats() {
+      if (!currentPost) return;
+      const args        = AgoraStore.getArguments(currentPost.id);
+      const forCount    = args.filter(a => a.side === 'for').length;
+      const againstCount= args.filter(a => a.side === 'against').length;
+      const total       = args.length;
+
+      document.getElementById('stat-for').textContent     = forCount;
+      document.getElementById('stat-against').textContent = againstCount;
+      document.getElementById('stat-args').textContent    = total;
+      document.getElementById('stat-mc').textContent      = currentPost.mindChanges || 0;
+      document.getElementById('mc-count').textContent     = (currentPost.mindChanges || 0) + ' mind changes in this debate.';
+
+      const forPct     = total ? Math.round(forCount / total * 100) : 0;
+      const againstPct = total ? Math.round(againstCount / total * 100) : 0;
+      const neutralPct = 100 - forPct - againstPct;
+
+      document.getElementById('split-for-bar').style.width     = forPct + '%';
+      document.getElementById('split-against-bar').style.width = againstPct + '%';
+      document.getElementById('split-for-pct').textContent     = forPct + '% For';
+      document.getElementById('split-neutral-pct').textContent = neutralPct + '% Undecided';
+      document.getElementById('split-against-pct').textContent = againstPct + '% Against';
+    }
+
+    // ── THREAD ──
+    function renderThread() {
+      const thread = document.getElementById('thread');
+      const args   = AgoraStore.getArguments(currentPost.id);
+      if (!args.length) {
+        thread.innerHTML = '<div class="thread-empty">No arguments yet — be the first to post below.</div>';
+        return;
+      }
+      thread.innerHTML = args.map(a => AgoraStore.renderArgCard(a, currentPost.id)).join('');
+      // Scroll to bottom so newest is visible
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    // ── COMPOSE ──
+    function switchTab(side) {
+      currentSide = side;
+      document.getElementById('tab-for').className    = 'compose-tab for'     + (side === 'for'     ? ' active' : '');
+      document.getElementById('tab-against').className= 'compose-tab against' + (side === 'against' ? ' active' : '');
+      const btn = document.getElementById('submit-btn');
+      btn.className   = 'post-btn ' + (side === 'for' ? 'for-btn' : 'against-btn');
+      btn.textContent = side === 'for' ? 'Post — For ✦' : 'Post — Against ✦';
+    }
+
+    function updateCount() {
+      const ta = document.getElementById('post-textarea');
+      const ct = document.getElementById('char-count');
+      ct.textContent = ta.value.length + ' / 800';
+      ct.style.color = ta.value.length > 700 ? 'var(--red)' : '#ccc';
+    }
+
+    function postArgument() {
+      if (!currentPost) return;
+      const ta   = document.getElementById('post-textarea');
+      const text = ta.value.trim();
+      if (!text)          { showToast('Write something first.'); return; }
+      if (text.length < 3){ showToast('Minimum 3 characters.'); return; }
+
+      AgoraStore.createArgument(currentPost.id, { side: currentSide, body: text, author: 'You' });
+      currentPost = AgoraStore.getPost(currentPost.id);
+      ta.value = '';
+      updateCount();
+      renderThread();
+      updateStats();
+
+      if (!hasPosted) {
+        hasPosted = true;
+        unlock();
+        showToast('Argument posted — position tools unlocked ✦');
+      } else {
+        showToast('Argument posted.');
+      }
+    }
+
+    function unlock() {
+      document.getElementById('pos-locked').style.display = 'none';
+      document.getElementById('pos-content').classList.add('on');
+      document.getElementById('mc-locked').style.display  = 'none';
+      document.getElementById('mc-content').classList.add('on');
+    }
+
+    // ── VOTES & STEELMAN (called from rendered HTML) ──
+    function handleVote(argId, dir) {
+      AgoraStore.vote(argId, dir);
+      renderThread();
+      updateStats();
+    }
+
+    function handleSteelman(argId) {
+      AgoraStore.toggleSteelman(argId);
+      renderThread();
+    }
+
+    // ── DRAWER ──
+    function toggleDrawer() {
+      drawerOpen = !drawerOpen;
+      document.getElementById('drawer').classList.toggle('open', drawerOpen);
+    }
+
+    // ── POSITION ──
+    function selectPos(btn) {
+      document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function updateConf(slider) {
+      document.getElementById('conf-display').textContent = slider.value + '%';
+    }
+
+    // ── MIND CHANGE ──
+    function openMindChange() {
+      document.getElementById('mindChangeModal').classList.add('open');
+    }
+    function closeMindChange() {
+      document.getElementById('mindChangeModal').classList.remove('open');
+    }
+    function submitMindChange() {
+      const text = document.getElementById('mc-textarea').value.trim();
+      if (currentPost) AgoraStore.declareMindChange(currentPost.id, text);
+      currentPost = AgoraStore.getPost(currentPost.id);
+      updateStats();
+      closeMindChange();
+      showToast('Mind change submitted — under Hall of Fame review ✦');
+    }
+
+    document.getElementById('mindChangeModal').addEventListener('click', function(e) {
+      if (e.target === this) closeMindChange();
+    });
+
+    // ── TOAST ──
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    loadPost();
+  </script>
+
+</body>
+</html>
