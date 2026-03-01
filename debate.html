@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora — Debate</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #358f65;
+      --blue:   #71a9f7;
+      --white:  #ffffff;
+      --navy:   #2e5077;
+      --red:    #A41623;
+      --cream:  #f5f0e8;
+      --ink:    #1a1a2e;
+      --compose-h: 140px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.7;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      flex-shrink: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 60px;
+      background: rgba(46,80,119,0.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(113,169,247,0.2);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 36px; width: 36px; object-fit: contain; }
+    .nav-logo-text { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { font-family: 'EB Garamond', serif; font-size: 14px; color: rgba(255,255,255,0.7); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta { display: flex; gap: 10px; }
+    .btn { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.08em; padding: 7px 18px; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: #2a7552; }
+
+    /* ── DEBATE HEADER (compact) ── */
+    .debate-header {
+      flex-shrink: 0;
+      background: linear-gradient(160deg, var(--navy) 0%, #1c3550 100%);
+      padding: 20px 40px 0;
+      position: relative;
+      animation: fadeDown 0.5s ease both;
+    }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .debate-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--navy) 50%, var(--green));
+    }
+    .header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .header-left { flex: 1; min-width: 0; }
+    .breadcrumb { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
+    .breadcrumb a { color: var(--blue); text-decoration: none; }
+    .debate-title { font-family: 'Cinzel', serif; font-size: clamp(16px, 2.2vw, 26px); font-weight: 700; color: var(--white); line-height: 1.25; margin-bottom: 6px; }
+    .debate-desc { font-size: 14px; color: rgba(255,255,255,0.5); font-style: italic; margin-bottom: 12px; }
+    .header-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+    .tag-chip { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 2px; background: rgba(113,169,247,0.15); color: var(--blue); }
+
+    /* stats row inside header */
+    .header-stats {
+      display: flex;
+      gap: 0;
+      margin-top: 4px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .hstat {
+      padding: 10px 20px 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      margin-right: 20px;
+    }
+    .hstat:last-child { border-right: none; }
+    .hstat-val { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; color: white; }
+    .hstat-lbl { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+
+    /* split bar inside header */
+    .split-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0 14px;
+      flex-wrap: wrap;
+    }
+    .split-track { flex: 1; min-width: 120px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; position: relative; }
+    .split-for-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: var(--green); border-radius: 3px 0 0 3px; transition: width 0.4s ease; }
+    .split-against-bar { position: absolute; right: 0; top: 0; bottom: 0; width: 0%; background: var(--red); border-radius: 0 3px 3px 0; transition: width 0.4s ease; }
+    .split-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; white-space: nowrap; }
+    .for-label { color: var(--green); }
+    .against-label { color: var(--red); }
+    .neutral-label { color: rgba(255,255,255,0.35); }
+
+    /* ── THREAD (fills remaining space) ── */
+    .thread-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 40px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .thread-empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: #aaa;
+      font-style: italic;
+      font-size: 15px;
+      margin: auto;
+    }
+
+    /* ── ARG CARD ── */
+    .arg-card {
+      background: white;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      border-left: 4px solid transparent;
+      padding: 18px 20px 14px;
+      transition: box-shadow 0.2s, transform 0.2s;
+      animation: slideUp 0.3s ease both;
+      flex-shrink: 0;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .arg-card.for { border-left-color: var(--green); border-color: rgba(53,143,101,0.15); }
+    .arg-card.against { border-left-color: var(--red); border-color: rgba(164,22,35,0.12); }
+    .arg-card.undecided { border-left-color: var(--blue); border-color: rgba(113,169,247,0.15); }
+    .arg-card:hover { box-shadow: 0 3px 16px rgba(0,0,0,0.07); }
+
+    .arg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .arg-author { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; color: white; flex-shrink: 0; }
+    .arg-name { font-family: 'Cinzel', serif; font-size: 12px; font-weight: 600; color: var(--navy); letter-spacing: 0.05em; }
+    .arg-time { font-size: 12px; color: #bbb; margin-left: 6px; }
+    .arg-side-badge { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 9px; border-radius: 20px; }
+    .badge-for { background: rgba(53,143,101,0.1); color: var(--green); }
+    .badge-against { background: rgba(164,22,35,0.08); color: var(--red); }
+    .badge-undecided { background: rgba(113,169,247,0.12); color: var(--blue); }
+
+    .arg-body { font-size: 16px; line-height: 1.65; color: #2a2a2a; margin-bottom: 12px; }
+
+
+    /* quoted block inside rendered arg */
+    .quote-block {
+      background: rgba(46,80,119,0.05);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 3px 3px 0;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #666;
+      font-style: italic;
+    }
+    .quote-block .quote-attr {
+      display: block;
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--blue);
+      font-style: normal;
+      margin-bottom: 4px;
+    }
+    .arg-footer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; }
+    .arg-action { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; background: none; border: 1px solid #e8e8e8; padding: 3px 9px; border-radius: 2px; cursor: pointer; transition: all 0.15s; }
+    .arg-action:hover { color: var(--navy); border-color: var(--navy); }
+    .arg-action.quote-btn:hover { color: var(--blue); border-color: var(--blue); }
+    .arg-action.report-btn:hover { color: var(--red); border-color: var(--red); }
+    .compose-quote {
+      display: none;
+      background: rgba(113,169,247,0.08);
+      border-left: 3px solid var(--blue);
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border-radius: 0 3px 3px 0;
+      font-size: 13px;
+      color: #555;
+      font-style: italic;
+      line-height: 1.5;
+      position: relative;
+    }
+    .compose-quote.visible { display: block; }
+    .quote-author { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; color: var(--blue); font-style: normal; display: block; margin-bottom: 4px; }
+    .quote-clear { position: absolute; top: 6px; right: 8px; background: none; border: none; color: #aaa; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
+    .quote-clear:hover { color: var(--red); }
+    /* report modal */
+    .report-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .report-type-btn { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.08em; padding: 10px 8px; border: 1px solid rgba(46,80,119,0.2); border-radius: 3px; background: white; color: #888; cursor: pointer; transition: all 0.18s; text-align: center; line-height: 1.4; }
+    .report-type-btn:hover { border-color: var(--red); color: var(--red); }
+    .report-type-btn.selected { background: var(--red); color: white; border-color: var(--red); }
+    .arg-votes { display: flex; align-items: center; gap: 3px; font-family: 'Cinzel', serif; font-size: 12px; color: #bbb; margin-left: auto; }
+    .vote-btn { background: none; border: none; cursor: pointer; font-size: 12px; padding: 2px 4px; color: #ccc; transition: color 0.15s, transform 0.12s; }
+    .vote-btn:hover { transform: scale(1.25); }
+    .vote-btn.up:hover, .vote-btn.active-up { color: var(--green); }
+    .vote-btn.down:hover, .vote-btn.active-down { color: var(--red); }
+
+    /* ── COMPOSE BAR (pinned bottom) ── */
+    .compose-bar {
+      flex-shrink: 0;
+      background: white;
+      border-top: 1px solid rgba(46,80,119,0.12);
+      padding: 12px 40px 14px;
+      z-index: 50;
+    }
+
+    .compose-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(46,80,119,0.1);
+    }
+    .compose-tab {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 7px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #aaa;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-bottom: -1px;
+    }
+    .compose-tab.for.active  { color: var(--green); border-bottom-color: var(--green); }
+    .compose-tab.against.active { color: var(--red); border-bottom-color: var(--red); }
+    .compose-tab:hover { color: var(--navy); }
+
+    .compose-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .compose-textarea {
+      flex: 1;
+      font-family: 'EB Garamond', serif;
+      font-size: 16px;
+      padding: 10px 14px;
+      border: 1px solid rgba(46,80,119,0.2);
+      border-radius: 3px;
+      background: rgba(245,240,232,0.5);
+      color: var(--ink);
+      resize: none;
+      outline: none;
+      height: 56px;
+      transition: border-color 0.2s, height 0.2s;
+      line-height: 1.5;
+    }
+    .compose-textarea:focus { border-color: var(--navy); background: white; height: 80px; }
+
+    .compose-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .char-count { font-family: 'Cinzel', serif; font-size: 10px; color: #ccc; letter-spacing: 0.05em; }
+
+    .post-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      padding: 10px 24px;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: white;
+      white-space: nowrap;
+      background: var(--navy);
+    }
+    .post-btn:hover { background: #1e3a5f; }
+
+    /* side picker modal */
+    .side-picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+    .side-pick-btn {
+      padding: 18px 8px 14px;
+      border-radius: 3px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      background: rgba(245,240,232,0.6);
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      transition: all 0.18s;
+    }
+    .side-pick-icon { font-size: 18px; line-height: 1; }
+    .side-pick-label { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; }
+    .side-pick-desc { font-size: 11px; color: #999; line-height: 1.3; text-align: center; font-family: 'EB Garamond', serif; }
+    .for-pick  { border-color: rgba(53,143,101,0.25); color: var(--green); }
+    .for-pick:hover  { background: var(--green); color: white; border-color: var(--green); }
+    .und-pick  { border-color: rgba(46,80,119,0.2); color: var(--navy); }
+    .und-pick:hover  { background: var(--navy); color: white; border-color: var(--navy); }
+    .against-pick { border-color: rgba(164,22,35,0.18); color: var(--red); }
+    .against-pick:hover { background: var(--red); color: white; border-color: var(--red); }
+    .for-pick:hover .side-pick-desc,
+    .und-pick:hover .side-pick-desc,
+    .against-pick:hover .side-pick-desc { color: rgba(255,255,255,0.65); }
+
+    /* locked hint inside compose */
+    .compose-locked-hint {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: #bbb;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* ── SIDEBAR DRAWER (position/mind change) ── */
+    .drawer-toggle {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 4px 0 0 4px;
+      padding: 12px 8px;
+      cursor: pointer;
+      z-index: 90;
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transition: background 0.2s;
+    }
+    .drawer-toggle:hover { background: #1e3a5f; }
+
+    .drawer {
+      position: fixed;
+      right: -340px;
+      top: 0; bottom: 0;
+      width: 320px;
+      background: white;
+      border-left: 1px solid rgba(46,80,119,0.12);
+      z-index: 200;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      padding: 24px;
+      padding-top: 70px;
+    }
+    .drawer.open { right: 0; }
+
+    .drawer-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    .drawer h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--navy);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(46,80,119,0.08);
+    }
+
+    .drawer-section {
+      margin-bottom: 28px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(46,80,119,0.08);
+    }
+    .drawer-section:last-child { border-bottom: none; }
+    .drawer-section.blue-top { border-top: 3px solid var(--blue); padding-top: 16px; }
+    .drawer-section.red-top  { border-top: 3px solid var(--red); padding-top: 16px; }
+    .drawer-section.green-top { border-top: 3px solid var(--green); padding-top: 16px; }
+
+    /* locked overlay */
+    .lock-msg { background: rgba(245,240,232,0.9); border: 1px dashed rgba(46,80,119,0.2); border-radius: 3px; padding: 14px; text-align: center; font-size: 13px; color: #888; line-height: 1.5; }
+    .lock-msg .lock-icon { font-size: 18px; display: block; margin-bottom: 5px; }
+    .lock-msg strong { display: block; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.08em; color: var(--navy); margin-bottom: 3px; }
+    .unlockable { display: none; }
+    .unlockable.on { display: block; }
+
+    /* position */
+    .pos-row { display: flex; gap: 6px; margin-bottom: 14px; }
+    .pos-btn { flex: 1; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.08em; padding: 8px 4px; border-radius: 2px; border: 1px solid transparent; cursor: pointer; transition: all 0.18s; text-align: center; }
+    .pos-btn.for-btn-s { background: rgba(53,143,101,0.08); color: var(--green); border-color: rgba(53,143,101,0.25); }
+    .pos-btn.for-btn-s:hover, .pos-btn.for-btn-s.active { background: var(--green); color: white; border-color: var(--green); }
+    .pos-btn.und-btn { background: rgba(46,80,119,0.06); color: var(--navy); border-color: rgba(46,80,119,0.15); }
+    .pos-btn.und-btn:hover, .pos-btn.und-btn.active { background: var(--navy); color: white; }
+    .pos-btn.against-btn-s { background: rgba(164,22,35,0.06); color: var(--red); border-color: rgba(164,22,35,0.18); }
+    .pos-btn.against-btn-s:hover, .pos-btn.against-btn-s.active { background: var(--red); color: white; }
+
+    .slider-row { display: flex; justify-content: space-between; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.05em; color: #aaa; margin-bottom: 5px; }
+    .conf-slider { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--green), var(--blue), var(--navy)); outline: none; }
+    .conf-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--navy); cursor: pointer; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+    .conf-display { text-align: center; font-family: 'Cinzel', serif; font-size: 24px; font-weight: 700; color: var(--navy); margin: 6px 0; }
+    .wwc-lbl { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #aaa; margin-bottom: 5px; margin-top: 12px; }
+    .wwc-input { width: 100%; font-family: 'EB Garamond', serif; font-size: 14px; padding: 8px 10px; border: 1px solid rgba(46,80,119,0.15); border-radius: 2px; color: var(--ink); outline: none; min-height: 56px; resize: vertical; background: rgba(245,240,232,0.4); }
+    .wwc-input:focus { border-color: var(--navy); background: white; }
+    .save-btn { margin-top: 10px; width: 100%; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; padding: 9px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; transition: background 0.18s; }
+    .save-btn:hover { background: #1e3a5f; }
+
+    /* mind change */
+    .mc-desc { font-size: 14px; color: #666; margin-bottom: 10px; line-height: 1.55; }
+    .mc-count { font-size: 13px; color: #aaa; margin-bottom: 12px; font-style: italic; }
+    .mc-btn { width: 100%; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; padding: 9px; background: transparent; color: var(--red); border: 1px solid var(--red); border-radius: 2px; cursor: pointer; transition: all 0.18s; }
+    .mc-btn:hover { background: var(--red); color: white; }
+
+    /* rules */
+    .rule-item { display: flex; gap: 8px; margin-bottom: 9px; font-size: 14px; color: #555; line-height: 1.5; }
+    .rule-num { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700; color: var(--green); flex-shrink: 0; margin-top: 2px; }
+
+    /* ── MODAL ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.7); z-index: 300; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.22s; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal { background: white; border-radius: 4px; padding: 36px; max-width: 500px; width: 90%; transform: translateY(16px); transition: transform 0.22s; position: relative; border-top: 4px solid var(--red); }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close { position: absolute; top: 14px; right: 18px; background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; }
+    .modal h2 { font-family: 'Cinzel', serif; font-size: 18px; color: var(--red); margin-bottom: 8px; }
+    .modal p { font-size: 14px; color: #666; margin-bottom: 16px; line-height: 1.6; }
+    .modal textarea { width: 100%; min-height: 100px; font-family: 'EB Garamond', serif; font-size: 15px; padding: 11px; border: 1px solid rgba(46,80,119,0.2); border-radius: 3px; resize: vertical; outline: none; margin-bottom: 14px; }
+    .modal textarea:focus { border-color: var(--navy); }
+    .modal-submit { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.1em; padding: 11px 26px; background: var(--red); color: white; border: none; border-radius: 2px; cursor: pointer; transition: background 0.18s; }
+    .modal-submit:hover { background: #8a1020; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px); background: var(--ink); color: white; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; padding: 10px 22px; border-radius: 2px; z-index: 400; transition: transform 0.28s ease; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; }
+      .nav-links { display: none; }
+      .debate-header { padding: 16px 16px 0; }
+      .thread-container { padding: 14px 16px; }
+      .compose-bar { padding: 10px 16px 12px; }
+    }
+
+    /* ── AUTH MODAL (scoped to avoid conflict with report/side modals) ── */
+    .auth-overlay {
+      position: fixed; inset: 0; z-index: 600;
+      background: rgba(15,30,48,0.75);
+      backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .auth-overlay.open { display: flex; }
+    .auth-box {
+      background: white;
+      border-top: 4px solid var(--navy);
+      border-radius: 3px;
+      padding: 36px 40px 40px;
+      max-width: 440px; width: 100%;
+      animation: authIn 0.25s ease both;
+    }
+    @keyframes authIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    .auth-tabs { display: flex; border-bottom: 2px solid rgba(46,80,119,0.12); margin-bottom: 26px; }
+    .auth-tab { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 20px 10px 0; background: none; border: none; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .auth-tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+    .auth-tab:hover:not(.active) { color: var(--navy); }
+    .auth-panel { display: none; }
+    .auth-panel.active { display: block; }
+    .auth-title { font-family: 'Cinzel', serif; font-size: 20px; color: var(--navy); margin-bottom: 6px; }
+    .auth-desc  { font-size: 15px; color: #888; margin-bottom: 20px; line-height: 1.5; }
+    .auth-field { margin-bottom: 13px; }
+    .auth-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--navy); display: block; margin-bottom: 5px; }
+    .auth-input { width: 100%; font-family: 'EB Garamond', serif; font-size: 17px; padding: 10px 13px; border: 1px solid rgba(46,80,119,0.25); border-radius: 3px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .auth-input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(46,80,119,0.07); }
+    .auth-input.err { border-color: var(--red); }
+    .auth-field-err { font-family: 'Cinzel', serif; font-size: 11px; color: var(--red); margin-top: 4px; display: none; }
+    .auth-field-err.show { display: block; }
+    .auth-global-err { font-family: 'Cinzel', serif; font-size: 12px; color: var(--red); background: rgba(164,22,35,0.06); border: 1px solid rgba(164,22,35,0.2); border-radius: 3px; padding: 9px 13px; margin-bottom: 14px; display: none; }
+    .auth-global-err.show { display: block; }
+    .auth-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .auth-btn-primary { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 11px 24px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; transition: all 0.2s; flex: 1; }
+    .auth-btn-primary:hover { background: #1e3a5f; }
+    .auth-btn-cancel  { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 11px 20px; background: transparent; color: #aaa; border: 1px solid #ddd; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .auth-btn-cancel:hover { color: var(--navy); border-color: var(--navy); }
+    .nav-user { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; color: var(--blue); }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="logo.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div class="nav-cta" id="nav-cta">
+      <button class="btn btn-outline" onclick="openAuthModal('signin')">Sign In</button>
+      <button class="btn btn-primary"  onclick="openAuthModal('signup')">Join</button>
+    </div>
+  </nav>
+
+  <!-- DEBATE HEADER -->
+  <div class="debate-header">
+    <div class="header-top">
+      <div class="header-left">
+        <div class="breadcrumb"><a href="debates.html">Debates</a> › <span id="post-type-label">Debate</span></div>
+        <h1 class="debate-title" id="post-title">Loading...</h1>
+        <p class="debate-desc" id="post-body"></p>
+        <div class="header-tags" id="header-tags"></div>
+      </div>
+      <div class="header-stats">
+        <div class="hstat">
+          <span class="hstat-val" style="color:var(--green)" id="stat-for">0</span>
+          <span class="hstat-lbl">Users For</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-val" style="color:var(--red)" id="stat-against">0</span>
+          <span class="hstat-lbl">Users Against</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-val" style="color:var(--blue)" id="stat-args">0</span>
+          <span class="hstat-lbl">Args</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-val" id="stat-mc">0</span>
+          <span class="hstat-lbl">Mind Changes</span>
+        </div>
+      </div>
+    </div>
+    <div class="split-row">
+      <span class="split-label for-label" id="split-for-pct">0% For</span>
+      <div class="split-track">
+        <div class="split-for-bar" id="split-for-bar"></div>
+        <div class="split-against-bar" id="split-against-bar"></div>
+      </div>
+      <span class="split-label neutral-label" id="split-neutral-pct">100% Undecided</span>
+      <span class="split-label against-label" id="split-against-pct">0% Against</span>
+    </div>
+  </div>
+
+  <!-- THREAD -->
+  <div class="thread-container" id="thread">
+    <div class="thread-empty">No arguments yet — be the first to post below.</div>
+  </div>
+
+  <!-- COMPOSE BAR -->
+  <div class="compose-bar">
+    <div class="compose-quote" id="compose-quote">
+      <span class="quote-author" id="quote-author-label"></span>
+      <span id="quote-preview-text"></span>
+      <button class="quote-clear" onclick="clearQuote()">✕</button>
+    </div>
+    <div class="compose-row">
+      <textarea
+        class="compose-textarea"
+        id="post-textarea"
+        placeholder="Make your argument. Be precise."
+        oninput="updateCount()"
+      ></textarea>
+      <div class="compose-right">
+        <span class="char-count" id="char-count">0 / 800</span>
+        <button class="post-btn" id="submit-btn" onclick="postArgument()">Post Argument ✦</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRAWER TOGGLE -->
+  <button class="drawer-toggle" onclick="toggleDrawer()">My Position &amp; Tools</button>
+
+  <!-- DRAWER -->
+  <div class="drawer" id="drawer">
+    <button class="drawer-close" onclick="toggleDrawer()">✕</button>
+
+    <!-- My Position -->
+    <div class="drawer-section blue-top">
+      <h3>My Position</h3>
+      <div id="pos-locked" class="lock-msg">
+        <span class="lock-icon">🔒</span>
+        <strong>Post First</strong>
+        Post an argument to unlock your confidence slider.
+      </div>
+      <div class="unlockable" id="pos-content">
+        <div class="pos-row">
+          <button class="pos-btn for-btn-s" onclick="selectPos(this)">For</button>
+          <button class="pos-btn und-btn active" onclick="selectPos(this)">Undecided</button>
+          <button class="pos-btn against-btn-s" onclick="selectPos(this)">Against</button>
+        </div>
+        <div class="slider-row"><span>Low confidence</span><span>High</span></div>
+        <input type="range" class="conf-slider" min="0" max="100" value="50" oninput="updateConf(this)">
+        <div class="conf-display" id="conf-display">50%</div>
+        <div class="wwc-lbl">What would change your mind?</div>
+        <textarea class="wwc-input" placeholder="e.g. Peer-reviewed evidence showing..."></textarea>
+        <button class="save-btn">Save Position</button>
+      </div>
+    </div>
+
+    <!-- Mind Change -->
+    <div class="drawer-section red-top">
+      <h3>Declare a Mind Change</h3>
+      <div id="mc-locked" class="lock-msg">
+        <span class="lock-icon">🔒</span>
+        <strong>Post First</strong>
+        Post an argument to unlock mind change declarations.
+      </div>
+      <div class="unlockable" id="mc-content">
+        <p class="mc-desc">Has this debate shifted your view? Mind changes earn Hall of Fame consideration.</p>
+        <p class="mc-count" id="mc-count">0 mind changes in this debate.</p>
+        <button class="mc-btn" onclick="openMindChange()">↻ My Mind Has Changed</button>
+      </div>
+    </div>
+
+    <!-- Rules -->
+    <div class="drawer-section green-top">
+      <h3>Debate Rules</h3>
+            <div class="rule-item"><span class="rule-num">I</span><span>State what would change your mind.</span></div>
+      <div class="rule-item"><span class="rule-num">II</span><span>Cite evidence where possible.</span></div>
+      <div class="rule-item"><span class="rule-num">III</span><span>Attack ideas, never people.</span></div>
+    </div>
+  </div>
+
+  <!-- REPORT MODAL -->
+  <!-- AUTH MODAL -->
+  <div class="auth-overlay" id="auth-modal" onclick="handleAuthOverlay(event)">
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="auth-tab-signin" onclick="authSwitchTab('signin')">Sign In</button>
+        <button class="auth-tab"        id="auth-tab-signup" onclick="authSwitchTab('signup')">Create Account</button>
+      </div>
+
+      <!-- SIGN IN -->
+      <div class="auth-panel active" id="auth-panel-signin">
+        <h2 class="auth-title">Welcome back.</h2>
+        <p class="auth-desc">Sign in with your username and password.</p>
+        <div class="auth-global-err" id="auth-signin-err"></div>
+        <div class="auth-field">
+          <label class="auth-label">Username</label>
+          <input type="text"     id="auth-signin-username" class="auth-input" placeholder="your_username" maxlength="30" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Password</label>
+          <input type="password" id="auth-signin-password" class="auth-input" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div class="auth-actions">
+          <button class="auth-btn-primary" onclick="authDoSignIn()">Sign In ✦</button>
+          <button class="auth-btn-cancel"  onclick="closeAuthModal()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- CREATE ACCOUNT -->
+      <div class="auth-panel" id="auth-panel-signup">
+        <h2 class="auth-title">Join The Agora.</h2>
+        <p class="auth-desc">Create an account to post arguments.</p>
+        <div class="auth-global-err" id="auth-signup-err"></div>
+        <div class="auth-field">
+          <label class="auth-label">Username</label>
+          <input type="text"     id="auth-signup-username" class="auth-input" placeholder="your_username" maxlength="30" autocomplete="username" />
+          <div class="auth-field-err" id="auth-err-username"></div>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Email</label>
+          <input type="email"    id="auth-signup-email"    class="auth-input" placeholder="you@example.com" autocomplete="email" />
+          <div class="auth-field-err" id="auth-err-email"></div>
+        </div>
+        <div class="auth-field">
+          <label class="auth-label">Password</label>
+          <input type="password" id="auth-signup-password" class="auth-input" placeholder="At least 6 characters" autocomplete="new-password" />
+          <div class="auth-field-err" id="auth-err-password"></div>
+        </div>
+        <div class="auth-actions">
+          <button class="auth-btn-primary" onclick="authDoSignUp()">Create Account ✦</button>
+          <button class="auth-btn-cancel"  onclick="closeAuthModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal" style="border-top-color: var(--red);">
+      <button class="modal-close" onclick="closeReport()">✕</button>
+      <h2 style="color:var(--red);">⚑ Report Argument</h2>
+      <p>Flag this argument for a rule violation. Reports are sent directly to the moderator.</p>
+      <div class="report-type-grid">
+        <button class="report-type-btn" onclick="selectReportType(this, 'ad-hominem')">Ad Hominem<br><span style="font-size:9px;font-family:sans-serif;font-weight:normal;opacity:0.7;">Attacks the person</span></button>
+        <button class="report-type-btn" onclick="selectReportType(this, 'unbacked-claim')">Unbacked Claim<br><span style="font-size:9px;font-family:sans-serif;font-weight:normal;opacity:0.7;">No evidence cited</span></button>
+        <button class="report-type-btn" onclick="selectReportType(this, 'off-topic')">Off Topic<br><span style="font-size:9px;font-family:sans-serif;font-weight:normal;opacity:0.7;">Doesn't address thesis</span></button>
+        <button class="report-type-btn" onclick="selectReportType(this, 'other')">Other<br><span style="font-size:9px;font-family:sans-serif;font-weight:normal;opacity:0.7;">Describe below</span></button>
+      </div>
+      <textarea id="report-notes" style="width:100%;min-height:70px;font-family:'EB Garamond',serif;font-size:15px;padding:10px;border:1px solid rgba(46,80,119,0.2);border-radius:3px;resize:vertical;outline:none;margin-bottom:14px;" placeholder="Optional: add context for the moderator..."></textarea>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <button class="modal-submit" onclick="submitReport()" style="background:var(--red);">Send Report</button>
+        <span style="font-size:12px;color:#aaa;">Goes directly to the moderator.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIND CHANGE MODAL -->
+  <div class="modal-overlay" id="mindChangeModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeMindChange()">✕</button>
+      <h2>↻ Declare a Mind Change</h2>
+      <p>What argument moved you and how has your view shifted? Be specific.</p>
+      <textarea id="mc-textarea" placeholder="Describe what changed your mind..."></textarea>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <button class="modal-submit" onclick="submitMindChange()">Submit Mind Change</button>
+        <span style="font-size:12px;color:#aaa;">Reviewed for Hall of Fame.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDE PICKER MODAL -->
+  <div class="modal-overlay" id="sideModal">
+    <div class="modal" style="border-top-color: var(--navy); max-width: 440px;">
+      <button class="modal-close" onclick="closeSidePicker()">✕</button>
+      <h2 style="color:var(--navy);">Choose Your Side</h2>
+      <p>Which position does your argument support?</p>
+      <div class="side-picker-grid">
+        <button class="side-pick-btn for-pick" onclick="confirmPostWithSide('for')">
+          <span class="side-pick-icon">✦</span>
+          <span class="side-pick-label">For</span>
+          <span class="side-pick-desc">You support the thesis</span>
+        </button>
+        <button class="side-pick-btn und-pick" onclick="confirmPostWithSide('undecided')">
+          <span class="side-pick-icon">?</span>
+          <span class="side-pick-label">Undecided</span>
+          <span class="side-pick-desc">Exploring without a firm stance</span>
+        </button>
+        <button class="side-pick-btn against-pick" onclick="confirmPostWithSide('against')">
+          <span class="side-pick-icon">✗</span>
+          <span class="side-pick-label">Against</span>
+          <span class="side-pick-desc">You oppose the thesis</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="store.js"></script>
+  <script>
+    let currentSide = 'for';
+    let hasPosted = false;
+    let currentPost = null;
+    let drawerOpen = false;
+
+    // ── LOAD ──
+    async function loadPost() {
+      currentPost = await AgoraStore.getCurrentPost();
+      if (!currentPost) { window.location.href = 'debates.html'; return; }
+
+      const typeLabel = currentPost.type.charAt(0).toUpperCase() + currentPost.type.slice(1);
+      document.getElementById('post-type-label').textContent = typeLabel;
+      document.title = 'The Agora — ' + currentPost.title;
+      document.getElementById('post-title').textContent = currentPost.title;
+      document.getElementById('post-body').textContent = currentPost.body;
+
+      if (currentPost.tags && currentPost.tags.length) {
+        document.getElementById('header-tags').innerHTML =
+          currentPost.tags.map(t => `<span class="tag-chip">${AgoraStore.escHtml(t)}</span>`).join('');
+      }
+
+      await updateStats();
+      await renderThread();
+    }
+
+    // ── STATS ──
+    async function updateStats() {
+      if (!currentPost) return;
+      const args         = await AgoraStore.getArguments(currentPost.id);
+      // Refresh post to get latest mindchanges count
+      currentPost = await AgoraStore.getPost(currentPost.id) || currentPost;
+
+      const forUsers     = new Set(args.filter(a => a.side === 'for').map(a => a.author)).size;
+      const againstUsers = new Set(args.filter(a => a.side === 'against').map(a => a.author)).size;
+      const totalUsers   = forUsers + againstUsers;
+      const totalArgs    = args.length;
+
+      document.getElementById('stat-for').textContent     = forUsers;
+      document.getElementById('stat-against').textContent = againstUsers;
+      document.getElementById('stat-args').textContent    = totalArgs;
+      document.getElementById('stat-mc').textContent      = currentPost.mindchanges || 0;
+      document.getElementById('mc-count').textContent     = (currentPost.mindchanges || 0) + ' mind changes in this debate.';
+
+      const forPct     = totalUsers ? Math.round(forUsers / totalUsers * 100) : 0;
+      const againstPct = totalUsers ? Math.round(againstUsers / totalUsers * 100) : 0;
+      const neutralPct = 100 - forPct - againstPct;
+
+      document.getElementById('split-for-bar').style.width     = forPct + '%';
+      document.getElementById('split-against-bar').style.width = againstPct + '%';
+      document.getElementById('split-for-pct').textContent     = forPct + '% For';
+      document.getElementById('split-neutral-pct').textContent = neutralPct + '% Undecided';
+      document.getElementById('split-against-pct').textContent = againstPct + '% Against';
+    }
+
+    // ── THREAD ──
+    async function renderThread() {
+      const thread = document.getElementById('thread');
+      const args   = await AgoraStore.getArguments(currentPost.id);
+      if (!args.length) {
+        thread.innerHTML = '<div class="thread-empty">No arguments yet — be the first to post below.</div>';
+        return;
+      }
+      // Batch-fetch votes for all args in one query
+      const voteMap = await AgoraStore.getVotesBatch(args.map(a => a.id));
+      thread.innerHTML = args.map(a => AgoraStore.renderArgCard(a, voteMap)).join('');
+      requestAnimationFrame(() => { thread.scrollTop = thread.scrollHeight; });
+    }
+
+    // ── COMPOSE ──
+
+    function updateCount() {
+      const ta = document.getElementById('post-textarea');
+      const ct = document.getElementById('char-count');
+      ct.textContent = ta.value.length + ' / 800';
+      ct.style.color = ta.value.length > 700 ? 'var(--red)' : '#ccc';
+    }
+
+    function unlock() {
+      document.getElementById('pos-locked').style.display = 'none';
+      document.getElementById('pos-content').classList.add('on');
+      document.getElementById('mc-locked').style.display  = 'none';
+      document.getElementById('mc-content').classList.add('on');
+    }
+
+    // ── VOTES (called from rendered HTML) ──
+    async function handleVote(argId, dir) {
+      const v = await AgoraStore.vote(argId, dir);
+      // Update just the affected card in the DOM — no full re-render needed
+      const countEl = document.getElementById('votes-' + argId);
+      if (countEl) countEl.textContent = v.up - v.down;
+      const card = document.getElementById('arg-' + argId);
+      if (card) {
+        card.querySelector('.vote-btn.up')?.classList.toggle('active-up', v.userVote === 'up');
+        card.querySelector('.vote-btn.down')?.classList.toggle('active-down', v.userVote === 'down');
+      }
+    }
+
+    // ── DRAWER ──
+    function toggleDrawer() {
+      drawerOpen = !drawerOpen;
+      document.getElementById('drawer').classList.toggle('open', drawerOpen);
+    }
+
+    // ── POSITION ──
+    function selectPos(btn) {
+      document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function updateConf(slider) {
+      document.getElementById('conf-display').textContent = slider.value + '%';
+    }
+
+    // ── MIND CHANGE ──
+    function openMindChange() {
+      document.getElementById('mindChangeModal').classList.add('open');
+    }
+    function closeMindChange() {
+      document.getElementById('mindChangeModal').classList.remove('open');
+    }
+    async function submitMindChange() {
+      const text = document.getElementById('mc-textarea').value.trim();
+      if (!text) { showToast('Describe what changed your mind first.'); return; }
+      if (currentPost) await AgoraStore.declareMindChange(currentPost.id, text);
+      await updateStats();
+      closeMindChange();
+      showToast('Mind change submitted — under Hall of Fame review ✦');
+    }
+
+    document.getElementById('mindChangeModal').addEventListener('click', function(e) {
+      if (e.target === this) closeMindChange();
+    });
+
+    // ── TOAST ──
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ── QUOTE ──
+    let activeQuote = null;
+
+    function quoteArg(argId, author) {
+      // Find the argument body from rendered card
+      const card = document.getElementById('arg-' + argId);
+      if (!card) return;
+      const bodyEl = card.querySelector('.arg-body');
+      const body = bodyEl ? bodyEl.textContent.trim() : card.querySelector('.quote-block')?.textContent.trim() || '';
+      const preview = body.length > 120 ? body.slice(0, 120) + '…' : body;
+
+      activeQuote = { argId, author, body };
+
+      document.getElementById('quote-author-label').textContent = author + ' said:';
+      document.getElementById('quote-preview-text').textContent = preview;
+      document.getElementById('compose-quote').classList.add('visible');
+
+      // Focus compose
+      const ta = document.getElementById('post-textarea');
+      ta.focus();
+      ta.style.height = '80px';
+    }
+
+    function clearQuote() {
+      activeQuote = null;
+      document.getElementById('compose-quote').classList.remove('visible');
+    }
+
+    function postArgument() {
+      if (!currentPost) return;
+      const ta   = document.getElementById('post-textarea');
+      const text = ta.value.trim();
+      if (!text)          { showToast('Write something first.'); return; }
+      if (text.length < 3){ showToast('Minimum 3 characters.'); return; }
+      // Open side picker — user chooses For / Undecided / Against
+      document.getElementById('sideModal').classList.add('open');
+    }
+
+    function closeSidePicker() {
+      document.getElementById('sideModal').classList.remove('open');
+    }
+
+    async function confirmPostWithSide(side) {
+      if (!currentPost) return;
+      const ta   = document.getElementById('post-textarea');
+      const text = ta.value.trim();
+      if (!text) return;
+
+      // Build body: prepend quote block if active
+      let body = text;
+      if (activeQuote) {
+        body = '> ' + activeQuote.author + ': "' + activeQuote.body.slice(0, 200) + (activeQuote.body.length > 200 ? '…' : '') + '"\n\n' + text;
+      }
+
+      currentSide = side;
+      closeSidePicker();
+      ta.value = '';
+      updateCount();
+      clearQuote();
+
+      await AgoraStore.createArgument(currentPost.id, { side, body });
+      await renderThread();
+      await updateStats();
+
+      if (!hasPosted) {
+        hasPosted = true;
+        unlock();
+        showToast('Argument posted — position tools unlocked ✦');
+      } else {
+        showToast('Argument posted.');
+      }
+    }
+
+    // ── REPORT ──
+    let reportArgId = null;
+    let reportType  = null;
+
+    function openReport(argId) {
+      reportArgId = argId;
+      reportType  = null;
+      document.querySelectorAll('.report-type-btn').forEach(b => b.classList.remove('selected'));
+      document.getElementById('report-notes').value = '';
+      document.getElementById('reportModal').classList.add('open');
+    }
+
+    function closeReport() {
+      document.getElementById('reportModal').classList.remove('open');
+    }
+
+    function selectReportType(btn, type) {
+      reportType = type;
+      document.querySelectorAll('.report-type-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function submitReport() {
+      if (!reportType) { showToast('Select a report type first.'); return; }
+      const notes = document.getElementById('report-notes').value.trim();
+      const post  = currentPost;
+      const arg   = document.getElementById('arg-' + reportArgId);
+      const argBodyEl = arg ? (arg.querySelector('.arg-body') || arg.querySelector('.quote-block')) : null;
+      const argBody = argBodyEl ? argBodyEl.textContent.trim().slice(0, 300) : '';
+
+      // Store report in localStorage for moderator review
+      const reports = JSON.parse(localStorage.getItem('agora_reports') || '[]');
+      reports.push({
+        id:        Date.now().toString(36),
+        argId:     reportArgId,
+        postId:    post ? post.id : null,
+        postTitle: post ? post.title : '',
+        argBody,
+        type:      reportType,
+        notes,
+        reportedAt: new Date().toISOString(),
+        status:    'pending',
+      });
+      localStorage.setItem('agora_reports', JSON.stringify(reports));
+
+      closeReport();
+      showToast('Report sent to moderator.');
+    }
+
+    document.getElementById('reportModal').addEventListener('click', function(e) {
+      if (e.target === this) closeReport();
+    });
+
+    document.getElementById('sideModal').addEventListener('click', function(e) {
+      if (e.target === this) closeSidePicker();
+    });
+
+    // ── AUTH ──────────────────────────────────────────────────────────────────
+    function getAccounts() {
+      try { return JSON.parse(localStorage.getItem('agora_accounts') || '{}'); } catch { return {}; }
+    }
+    function saveAccounts(obj) { localStorage.setItem('agora_accounts', JSON.stringify(obj)); }
+
+    function openAuthModal(tab) {
+      authSwitchTab(tab || 'signin');
+      authClearErrors();
+      document.getElementById('auth-modal').classList.add('open');
+      setTimeout(() => {
+        const f = (tab === 'signup')
+          ? document.getElementById('auth-signup-username')
+          : document.getElementById('auth-signin-username');
+        f && f.focus();
+      }, 60);
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.remove('open');
+      authClearErrors();
+      ['auth-signin-username','auth-signin-password',
+       'auth-signup-username','auth-signup-email','auth-signup-password']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    }
+
+    function handleAuthOverlay(e) {
+      if (e.target === document.getElementById('auth-modal')) closeAuthModal();
+    }
+
+    function authSwitchTab(tab) {
+      document.getElementById('auth-tab-signin').classList.toggle('active', tab === 'signin');
+      document.getElementById('auth-tab-signup').classList.toggle('active', tab === 'signup');
+      document.getElementById('auth-panel-signin').classList.toggle('active', tab === 'signin');
+      document.getElementById('auth-panel-signup').classList.toggle('active', tab === 'signup');
+      authClearErrors();
+    }
+
+    function authClearErrors() {
+      ['auth-signin-err','auth-signup-err','auth-err-username','auth-err-email','auth-err-password']
+        .forEach(id => { const el = document.getElementById(id); if (el) { el.classList.remove('show'); el.textContent = ''; } });
+      document.querySelectorAll('.auth-input').forEach(i => i.classList.remove('err'));
+    }
+
+    function authShowGlobal(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg; el.classList.add('show');
+    }
+
+    function authShowField(errId, inputId, msg) {
+      const el = document.getElementById(errId);
+      el.textContent = msg; el.classList.add('show');
+      document.getElementById(inputId).classList.add('err');
+    }
+
+    function authDoSignIn() {
+      authClearErrors();
+      const username = document.getElementById('auth-signin-username').value.trim();
+      const password = document.getElementById('auth-signin-password').value;
+      if (!username || !password) { authShowGlobal('auth-signin-err', 'Please enter your username and password.'); return; }
+      const acct = getAccounts()[username.toLowerCase()];
+      if (!acct)              { authShowGlobal('auth-signin-err', 'No account found with that username.'); return; }
+      if (acct.password !== password) {
+        authShowGlobal('auth-signin-err', 'Incorrect password.');
+        document.getElementById('auth-signin-password').classList.add('err');
+        return;
+      }
+      authFinishLogin(acct.username);
+    }
+
+    function authDoSignUp() {
+      authClearErrors();
+      const username = document.getElementById('auth-signup-username').value.trim();
+      const email    = document.getElementById('auth-signup-email').value.trim();
+      const password = document.getElementById('auth-signup-password').value;
+      let valid = true;
+      if (!username || username.length < 2)          { authShowField('auth-err-username', 'auth-signup-username', 'Username must be at least 2 characters.'); valid = false; }
+      else if (!/^[a-zA-Z0-9_\-\.]+$/.test(username)){ authShowField('auth-err-username', 'auth-signup-username', 'Letters, numbers, _ - . only.'); valid = false; }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { authShowField('auth-err-email', 'auth-signup-email', 'Please enter a valid email address.'); valid = false; }
+      if (!password || password.length < 6)          { authShowField('auth-err-password', 'auth-signup-password', 'Password must be at least 6 characters.'); valid = false; }
+      if (!valid) return;
+      const accounts = getAccounts();
+      if (accounts[username.toLowerCase()]) { authShowField('auth-err-username', 'auth-signup-username', 'That username is already taken.'); return; }
+      accounts[username.toLowerCase()] = { username, email, password };
+      saveAccounts(accounts);
+      authFinishLogin(username);
+    }
+
+    function authFinishLogin(username) {
+      localStorage.setItem('agora_user', username);
+      closeAuthModal();
+      updateNavAuth();
+    }
+
+    function updateNavAuth() {
+      const user = localStorage.getItem('agora_user');
+      const navCta = document.getElementById('nav-cta');
+      if (user) {
+        navCta.innerHTML = `<span class="nav-user">@${user}</span>
+          <button class="btn btn-outline" onclick="localStorage.removeItem('agora_user'); updateNavAuth()">Sign Out</button>`;
+      } else {
+        navCta.innerHTML = `
+          <button class="btn btn-outline" onclick="openAuthModal('signin')">Sign In</button>
+          <button class="btn btn-primary"  onclick="openAuthModal('signup')">Join</button>`;
+      }
+    }
+
+    // Enter key support for auth fields
+    document.getElementById('auth-signin-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-signin-password').focus(); });
+    document.getElementById('auth-signin-password').addEventListener('keydown', e => { if (e.key === 'Enter') authDoSignIn(); });
+    document.getElementById('auth-signup-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-signup-email').focus(); });
+    document.getElementById('auth-signup-email').addEventListener('keydown',    e => { if (e.key === 'Enter') document.getElementById('auth-signup-password').focus(); });
+    document.getElementById('auth-signup-password').addEventListener('keydown', e => { if (e.key === 'Enter') authDoSignUp(); });
+
+    updateNavAuth();
+    loadPost();
+  </script>
+
+</body>
+</html>

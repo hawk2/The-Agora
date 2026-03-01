@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora — Strong Opinions, Loosely Held</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #358f65;
+      --blue:   #71a9f7;
+      --white:  #ffffff;
+      --navy:   #2e5077;
+      --red:    #A41623;
+      --cream:  #f5f0e8;
+      --ink:    #1a1a2e;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--ink); font-family: 'EB Garamond', Georgia, serif; font-size: 18px; line-height: 1.7; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(46,80,119,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(113,169,247,0.2); }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { height: 42px; width: 42px; object-fit: contain; }
+    .nav-logo-text { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-family: 'EB Garamond', serif; font-size: 15px; color: rgba(255,255,255,0.75); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta { display: flex; gap: 12px; }
+    .btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 8px 20px; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-block; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: #2a7552; }
+
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; background: linear-gradient(160deg, var(--navy) 0%, #1a2f47 60%, #0f1e30 100%); }
+    .hero-bg-lines { position: absolute; inset: 0; background-image: repeating-linear-gradient(90deg, rgba(113,169,247,0.03) 0px, rgba(113,169,247,0.03) 1px, transparent 1px, transparent 80px); pointer-events: none; }
+    .hero-color-bar { position: absolute; bottom: 80px; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--red), var(--navy), var(--green), var(--blue)); opacity: 0.5; }
+    .hero-content { text-align: center; padding: 120px 24px 80px; max-width: 800px; position: relative; z-index: 2; }
+    .hero-eyebrow { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--blue); margin-bottom: 24px; animation: fadeUp 1s ease 0.2s both; }
+    .hero-title { font-family: 'Cinzel', serif; font-size: clamp(48px, 8vw, 88px); font-weight: 700; color: var(--white); line-height: 1.05; margin-bottom: 24px; animation: fadeUp 1s ease 0.3s both; }
+    .hero-title span { color: var(--blue); }
+    .hero-motto { font-family: 'EB Garamond', serif; font-style: italic; font-size: clamp(18px, 2.5vw, 24px); color: rgba(255,255,255,0.6); margin-bottom: 48px; animation: fadeUp 1s ease 0.4s both; }
+    .hero-motto cite { font-style: normal; font-size: 14px; color: rgba(255,255,255,0.35); display: block; margin-top: 6px; letter-spacing: 0.1em; }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; animation: fadeUp 1s ease 0.5s both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .btn-hero-primary { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 14px 36px; background: var(--green); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .btn-hero-primary:hover { background: #2a7552; transform: translateY(-2px); }
+    .btn-hero-outline { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 14px 36px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .btn-hero-outline:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-2px); }
+    .hero-divider { position: absolute; bottom: 0; left: 0; right: 0; height: 80px; background: linear-gradient(to bottom, transparent, var(--cream)); }
+
+    /* DEBATES SECTION */
+    .debates-section { max-width: 1100px; margin: 0 auto; padding: 80px 48px; }
+    .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; flex-wrap: wrap; gap: 16px; }
+    .section-label { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .section-title { font-family: 'Cinzel', serif; font-size: clamp(24px, 3vw, 36px); font-weight: 600; color: var(--navy); }
+    .new-debate-btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.1em; padding: 12px 28px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .new-debate-btn:hover { background: #1e3a5f; transform: translateY(-1px); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 80px 24px; border: 2px dashed rgba(46,80,119,0.15); border-radius: 4px; background: rgba(255,255,255,0.5); }
+    .empty-icon { font-size: 48px; margin-bottom: 20px; display: block; }
+    .empty-title { font-family: 'Cinzel', serif; font-size: 22px; color: var(--navy); margin-bottom: 12px; }
+    .empty-sub { font-size: 16px; color: #888; max-width: 440px; margin: 0 auto 32px; line-height: 1.6; }
+    .empty-btn { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 14px 36px; background: var(--green); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .empty-btn:hover { background: #2a7552; transform: translateY(-2px); }
+
+    /* DEBATE CARDS (shown when debates exist) */
+    .debates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .debate-card { background: white; border: 1px solid rgba(46,80,119,0.12); border-left: 4px solid var(--navy); border-radius: 3px; padding: 28px; cursor: pointer; transition: all 0.25s; text-decoration: none; display: block; color: inherit; }
+    .debate-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(46,80,119,0.1); border-left-color: var(--green); }
+    .card-category { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .card-title { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 600; color: var(--navy); line-height: 1.3; margin-bottom: 10px; }
+    .card-desc { font-size: 14px; color: #777; line-height: 1.6; margin-bottom: 18px; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px; font-size: 13px; }
+    .card-pills { display: flex; gap: 6px; }
+    .pill { font-family: 'Cinzel', serif; font-size: 10px; padding: 3px 10px; border-radius: 20px; }
+    .pill-for { background: rgba(53,143,101,0.1); color: var(--green); }
+    .pill-against { background: rgba(164,22,35,0.08); color: var(--red); }
+    .card-age { color: #bbb; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.05em; }
+
+    /* HOW IT WORKS */
+    .how-section { background: var(--navy); padding: 96px 48px; border-top: 4px solid var(--red); }
+    .how-inner { max-width: 1100px; margin: 0 auto; }
+    .how-section .section-label { color: var(--blue); }
+    .how-section .section-title { color: white; margin-bottom: 48px; }
+    .how-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
+    .how-card { padding: 28px 22px; border: 1px solid rgba(113,169,247,0.15); border-radius: 3px; transition: border-color 0.2s; }
+    .how-card:hover { border-color: rgba(113,169,247,0.4); }
+    .how-number { font-family: 'Cinzel', serif; font-size: 36px; font-weight: 700; color: rgba(113,169,247,0.2); line-height: 1; margin-bottom: 14px; }
+    .how-card h3 { font-family: 'Cinzel', serif; font-size: 15px; color: white; margin-bottom: 8px; }
+    .how-card p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+    /* CTA */
+    .cta-section { background: linear-gradient(135deg, var(--green), #2a7552); text-align: center; padding: 96px 24px; }
+    .cta-section h2 { font-family: 'Cinzel', serif; font-size: clamp(26px, 4vw, 44px); color: white; margin-bottom: 14px; }
+    .cta-section p { color: rgba(255,255,255,0.7); font-size: 18px; margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; }
+    .btn-cta { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 16px 44px; background: white; color: var(--green); border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+
+    /* FOOTER */
+    footer { background: var(--ink); color: rgba(255,255,255,0.4); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-logo { font-family: 'Cinzel', serif; font-size: 18px; color: white; letter-spacing: 0.08em; }
+    .footer-motto { font-style: italic; font-size: 14px; margin-top: 4px; }
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-family: 'Cinzel', serif; letter-spacing: 0.08em; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--blue); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .debates-section { padding: 60px 24px; }
+      .how-section { padding: 60px 24px; }
+      footer { flex-direction: column; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="logo.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a class="active" href="index.html">Home</a></li>
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="debates.html" class="btn btn-outline">Sign In</a>
+      <a href="debates.html" class="btn btn-primary">Join</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg-lines"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">A Forum for Honest Discourse</p>
+      <h1 class="hero-title">The <span>Agora</span></h1>
+      <div class="hero-motto">
+        "Strong opinions, loosely held."
+        <cite>— Paul Saffo</cite>
+      </div>
+      <div class="hero-actions">
+        <a href="debates.html" class="btn-hero-primary">Enter the Debates</a>
+        <a href="about.html" class="btn-hero-outline">Learn More</a>
+      </div>
+    </div>
+    <div class="hero-color-bar"></div>
+    <div class="hero-divider"></div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section">
+    <div class="how-inner">
+      <p class="section-label">The Method</p>
+      <h2 class="section-title">How The Agora Works</h2>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-number">01</div>
+          <h3>Start a Debate</h3>
+          <p>Pose a question worth arguing. State your position and what evidence would change your mind.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-number">02</div>
+          <h3>Take a Side</h3>
+          <p>Post an argument For or Against. Set your confidence level from 0–100%.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-number">03</div>
+          <h3>Engage Honestly</h3>
+          <p>Steelman the opposing view. Argue the strongest version of what you disagree with.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-number">04</div>
+          <h3>Update Publicly</h3>
+          <p>Changed your mind? The Hall of Fame honors those who updated their views with reasons.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Ready to Enter the Agora?</h2>
+    <p>Bring your convictions. Bring your doubts. Leave with something sharper.</p>
+    <a href="debates.html" class="btn-cta">Enter the Debates</a>
+  </section>
+
+  <footer>
+    <div>
+      <div class="footer-logo">The Agora</div>
+      <div class="footer-motto">"Strong opinions, loosely held." — Paul Saffo</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div style="font-size:13px;">© 2026 The Agora · Hawken Parkman</div>
+  </footer>
+
+
+</body>
+</html>

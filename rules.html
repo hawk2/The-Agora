@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora - Rules</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #358f65;
+      --blue: #71a9f7;
+      --white: #ffffff;
+      --navy: #2e5077;
+      --red: #A41623;
+      --cream: #f5f0e8;
+      --ink: #1a1a2e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 68px;
+      background: rgba(46,80,119,0.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(113,169,247,0.2);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { height: 42px; width: 42px; object-fit: contain; }
+    .nav-logo-text {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.04em;
+    }
+
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      font-family: 'EB Garamond', serif;
+      font-size: 15px;
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover,
+    .nav-links a.active { color: var(--blue); }
+
+    .nav-cta { display: flex; gap: 12px; }
+    .btn {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      padding: 8px 20px;
+      border-radius: 2px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      display: inline-block;
+    }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: #2a7552; }
+
+    .hero {
+      margin-top: 68px;
+      background: linear-gradient(160deg, var(--navy) 0%, #1a2f47 60%, #0f1e30 100%);
+      padding: 72px 48px 52px;
+      position: relative;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--navy) 50%, var(--green));
+    }
+
+    .hero-inner { max-width: 980px; margin: 0 auto; }
+    .eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(30px, 5vw, 54px);
+      color: var(--white);
+      margin-bottom: 12px;
+      line-height: 1.15;
+    }
+
+    .hero p {
+      color: rgba(255,255,255,0.68);
+      max-width: 760px;
+      font-size: 18px;
+    }
+
+    main { max-width: 1080px; margin: 0 auto; padding: 56px 48px 84px; }
+
+    .rule-list {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+
+    .rule-card {
+      background: white;
+      border: 1px solid rgba(46,80,119,0.13);
+      border-left: 4px solid var(--navy);
+      border-radius: 3px;
+      padding: 22px 22px 20px;
+    }
+
+    .rule-card:nth-child(odd) { border-left-color: var(--green); }
+    .rule-card:nth-child(even) { border-left-color: var(--red); }
+
+    .rule-id {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: #7a8194;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .rule-title {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      color: var(--navy);
+      margin-bottom: 8px;
+      line-height: 1.25;
+    }
+
+    .rule-body { color: #4f5568; font-size: 16px; }
+
+    .enforcement {
+      background: var(--navy);
+      border-top: 4px solid var(--red);
+      border-radius: 3px;
+      padding: 36px 30px;
+      color: rgba(255,255,255,0.74);
+      margin-bottom: 36px;
+    }
+
+    .enforcement h2 {
+      font-family: 'Cinzel', serif;
+      color: white;
+      font-size: 30px;
+      margin-bottom: 12px;
+    }
+
+    .enforcement p { margin-bottom: 12px; }
+
+    .enforcement ul {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .enforcement li {
+      border: 1px solid rgba(113,169,247,0.25);
+      border-radius: 2px;
+      padding: 10px 12px;
+      font-size: 15px;
+    }
+
+    .enforcement strong {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-right: 8px;
+    }
+
+    .cta {
+      text-align: center;
+      background: linear-gradient(135deg, var(--green), #2a7552);
+      border-radius: 3px;
+      padding: 32px 24px;
+    }
+
+    .cta h3 {
+      font-family: 'Cinzel', serif;
+      color: white;
+      font-size: clamp(24px, 3vw, 34px);
+      margin-bottom: 8px;
+    }
+
+    .cta p { color: rgba(255,255,255,0.75); margin-bottom: 22px; }
+
+    .cta a {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      padding: 12px 28px;
+      background: white;
+      color: var(--green);
+      text-decoration: none;
+      border-radius: 2px;
+      display: inline-block;
+    }
+
+    footer {
+      background: var(--ink);
+      color: rgba(255,255,255,0.4);
+      padding: 40px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo { font-family: 'Cinzel', serif; font-size: 18px; color: white; letter-spacing: 0.08em; }
+    .footer-motto { font-style: italic; font-size: 14px; margin-top: 4px; }
+
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      font-size: 13px;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover,
+    .footer-links a.active { color: var(--blue); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 52px 24px 38px; }
+      main { padding: 40px 24px 56px; }
+      .enforcement { padding: 28px 22px; }
+      footer { flex-direction: column; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="logo.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a class="active" href="rules.html">Rules</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="debates.html" class="btn btn-outline">Sign In</a>
+      <a href="debates.html" class="btn btn-primary">Join</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Community Rules</p>
+      <h1>Argue hard. Keep standards higher.</h1>
+      <p>These rules define what high-quality disagreement looks like on The Agora. Every post and comment is expected to meet this bar.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="rule-list">
+      <article class="rule-card">
+        <p class="rule-id">Rule I</p>
+        <h2 class="rule-title">Attack ideas, never people</h2>
+        <p class="rule-body">Sharp arguments, uncomfortable truths, and vigorous rebuttal are welcome here. What is not acceptable is sustained, targeted personal cruelty — the kind of repetitive, personalised meanness whose purpose is to make someone feel unwelcome rather than to engage their ideas. There is a real difference between an argument that stings and a campaign against a person. We will not pretend otherwise, but we will be honest about how carefully we intend to draw that line.</p>
+      </article>
+      <article class="rule-card">
+        <p class="rule-id">Rule II</p>
+        <h2 class="rule-title">Steelman before rebuttal</h2>
+        <p class="rule-body">Before disagreeing, represent the strongest version of the other side. Low-effort caricatures are not accepted.</p>
+      </article>
+      <article class="rule-card">
+        <p class="rule-id">Rule III</p>
+        <h2 class="rule-title">State confidence with revision conditions</h2>
+        <p class="rule-body">If you are certain, explain what evidence would make you less certain. Confidence without criteria is weak argumentation.</p>
+      </article>
+      <article class="rule-card">
+        <p class="rule-id">Rule IV</p>
+        <h2 class="rule-title">Use evidence proportionate to the claim</h2>
+        <p class="rule-body">High-impact claims require stronger evidence. Link to sources when possible and distinguish fact from interpretation.</p>
+      </article>
+      <article class="rule-card">
+        <p class="rule-id">Rule V</p>
+        <h2 class="rule-title">No spam or advertising</h2>
+        <p class="rule-body">Posts that are not arguments at all — spam, unsolicited advertising, automated content, and posts that exist only to disrupt rather than engage — will be removed. We acknowledge that this is censorship. There are places to advertise or maybe even to spam, but The Agora is not that place.</p>
+      </article>
+      <article class="rule-card">
+        <p class="rule-id">Rule VI</p>
+        <h2 class="rule-title">Mind changes are part of winning</h2>
+        <p class="rule-body">When your view shifts, say so clearly and explain why. Public updates improve the whole forum.</p>
+      </article>
+      <article class="rule-card">
+        <p class="rule-id">Rule VII</p>
+        <h2 class="rule-title">Wrong, unpopular, and heterodox views are not violations</h2>
+        <p class="rule-body">Posts will not be removed because they are wrong, offensive to some members, unpopular, heterodox, or contested. We will not remove posts because they have been labeled harmful or dangerous by someone. If an argument is wrong, the answer is a better argument — not removal. Removing bad arguments doesn't make them go away; it just removes the opportunity to publicly dismantle them.</p>
+      </article>
+    </section>
+
+    <section class="enforcement">
+      <h2>How Enforcement Works</h2>
+      <p>Moderation is standards-first, not ideology-first. There are three tiers, and they apply to very different things. For the full reasoning behind these policies, see the <a href="about.html" style="color: var(--blue);">On Censorship</a> section in About.</p>
+      <ul>
+        <li><strong>Immediate</strong> Spam, unsolicited advertising, and automated content are removed without warning. This is the only category where that's true.</li>
+        <li><strong>Warning</strong> Sustained, targeted personal cruelty — repetitive meanness aimed at making someone feel unwelcome — earns a written warning. The bar is deliberately high.</li>
+        <li><strong>Escalation</strong> Repeated conduct after warnings leads to posting limits, then suspension. We are slow and deliberate with this power.</li>
+        <li><strong>Never</strong> Posts are never removed for being wrong, unpopular, offensive, or heterodox. Ideas get rebutted, not deleted.</li>
+      </ul>
+    </section>
+
+    <section class="cta">
+      <h3>Read the rules. Raise the level.</h3>
+      <p>Start a post that can survive serious disagreement.</p>
+      <a href="submit.html">Start a Post</a>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <div class="footer-logo">The Agora</div>
+      <div class="footer-motto">"Strong opinions, loosely held." - Paul Saffo</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a class="active" href="rules.html">Rules</a></li>
+    </ul>
+    <div style="font-size:13px;">&copy; 2026 The Agora · Hawken Parkman</div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora — New Post</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #358f65;
+      --blue:   #71a9f7;
+      --white:  #ffffff;
+      --navy:   #2e5077;
+      --red:    #A41623;
+      --cream:  #f5f0e8;
+      --ink:    #1a1a2e;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--ink); font-family: 'EB Garamond', Georgia, serif; font-size: 18px; line-height: 1.7; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(46,80,119,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(113,169,247,0.2); }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { height: 42px; width: 42px; object-fit: contain; }
+    .nav-logo-text { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-family: 'EB Garamond', serif; font-size: 15px; color: rgba(255,255,255,0.75); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta { display: flex; gap: 12px; }
+    .btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 8px 20px; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-block; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary-nav { background: var(--green); color: var(--white); }
+    .btn-primary-nav:hover { background: #2a7552; }
+
+    /* PAGE HEADER */
+    .page-header { margin-top: 68px; background: linear-gradient(160deg, var(--navy), #1c3550); padding: 52px 48px 42px; position: relative; }
+    .page-header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--red), var(--navy) 50%, var(--green)); }
+    .page-header-inner { max-width: 720px; margin: 0 auto; animation: fadeDown 0.6s ease both; }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+    .breadcrumb { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--blue); margin-bottom: 14px; }
+    .breadcrumb a { color: var(--blue); text-decoration: none; }
+    .page-title { font-family: 'Cinzel', serif; font-size: clamp(24px, 4vw, 38px); font-weight: 700; color: white; margin-bottom: 10px; }
+    .page-desc { font-size: 15px; color: rgba(255,255,255,0.5); font-style: italic; }
+
+    /* FORM */
+    .form-wrapper { max-width: 720px; margin: 0 auto; padding: 52px 48px 100px; }
+
+    /* POST TYPE SELECTOR */
+    .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 36px; }
+    .type-card {
+      padding: 20px 18px;
+      background: white;
+      border: 2px solid rgba(46,80,119,0.12);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .type-card:hover { border-color: rgba(46,80,119,0.35); }
+    .type-card.selected { border-color: var(--navy); background: rgba(46,80,119,0.04); }
+    .type-card.selected.debate { border-color: var(--red); background: rgba(164,22,35,0.04); }
+    .type-card.selected.discussion { border-color: var(--blue); background: rgba(113,169,247,0.07); }
+    .type-card.selected.question { border-color: var(--green); background: rgba(53,143,101,0.05); }
+    .type-icon { font-size: 22px; margin-bottom: 8px; display: block; }
+    .type-name { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--navy); margin-bottom: 4px; }
+    .type-card.selected.debate .type-name { color: var(--red); }
+    .type-card.selected.discussion .type-name { color: var(--blue); }
+    .type-card.selected.question .type-name { color: var(--green); }
+    .type-desc { font-size: 13px; color: #888; line-height: 1.4; }
+
+    /* FIELDS */
+    .field-group { margin-bottom: 28px; }
+    .field-label { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--navy); display: block; margin-bottom: 8px; }
+    .field-hint { font-size: 14px; color: #999; margin-bottom: 10px; font-style: italic; line-height: 1.5; }
+    .field-required { color: var(--red); margin-left: 2px; }
+
+    input[type="text"], textarea {
+      width: 100%;
+      font-family: 'EB Garamond', serif;
+      font-size: 17px;
+      padding: 12px 16px;
+      border: 1px solid rgba(46,80,119,0.2);
+      border-radius: 3px;
+      background: white;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      line-height: 1.6;
+    }
+    input[type="text"]:focus, textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(46,80,119,0.06); }
+    textarea { resize: vertical; }
+    input.error, textarea.error { border-color: var(--red) !important; }
+
+    /* YES/NO framing hint (debate only) */
+
+
+    /* TAGS */
+    .tags-input-area {
+      background: white;
+      border: 1px solid rgba(46,80,119,0.2);
+      border-radius: 3px;
+      padding: 10px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      min-height: 52px;
+      cursor: text;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .tags-input-area:focus-within { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(46,80,119,0.06); }
+    .tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--navy);
+      color: white;
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      animation: tagPop 0.15s ease both;
+    }
+    @keyframes tagPop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+    .tag-remove { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 14px; line-height: 1; padding: 0; transition: color 0.15s; }
+    .tag-remove:hover { color: white; }
+    .tag-input {
+      border: none !important;
+      outline: none !important;
+      padding: 4px 4px !important;
+      font-size: 15px !important;
+      background: transparent !important;
+      flex: 1;
+      min-width: 120px;
+      box-shadow: none !important;
+    }
+    .tag-suggestions {
+      position: absolute;
+      background: white;
+      border: 1px solid rgba(46,80,119,0.15);
+      border-radius: 3px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 50;
+      max-height: 180px;
+      overflow-y: auto;
+      min-width: 200px;
+    }
+    .tag-suggestion {
+      padding: 10px 14px;
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.15s;
+      color: var(--navy);
+    }
+    .tag-suggestion:hover { background: rgba(46,80,119,0.06); }
+    .tags-wrapper { position: relative; }
+    .tag-count-hint { font-size: 13px; color: #bbb; margin-top: 6px; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.05em; }
+    .tag-count-hint.warn { color: var(--red); }
+
+    /* OPTIONAL SECTION (debate-only fields) */
+    .debate-fields { display: none; }
+    .debate-fields.show { display: block; }
+
+    /* POSITION (optional for debates) */
+    .position-toggle { display: flex; gap: 0; border: 1px solid rgba(46,80,119,0.2); border-radius: 3px; overflow: hidden; }
+    .pos-opt { flex: 1; padding: 11px; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; cursor: pointer; background: white; border: none; border-right: 1px solid rgba(46,80,119,0.15); transition: all 0.2s; color: #aaa; }
+    .pos-opt:last-child { border-right: none; }
+    .pos-opt:hover { color: var(--navy); background: rgba(46,80,119,0.03); }
+    .pos-opt.for.selected { background: var(--green); color: white; }
+    .pos-opt.undecided.selected { background: var(--navy); color: white; }
+    .pos-opt.against.selected { background: var(--red); color: white; }
+    .optional-badge { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; color: #bbb; margin-left: 6px; }
+
+    /* CONFIDENCE */
+    .conf-row { display: flex; align-items: center; gap: 16px; }
+    .conf-slider { flex: 1; -webkit-appearance: none; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--blue), var(--navy)); outline: none; }
+    .conf-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); cursor: pointer; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    .conf-value { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; color: var(--navy); min-width: 52px; text-align: right; }
+
+    /* DIVIDER */
+    .section-divider { border: none; border-top: 1px solid rgba(46,80,119,0.1); margin: 36px 0; }
+
+    /* SUBMIT */
+    .form-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding-top: 28px; border-top: 1px solid rgba(46,80,119,0.1); }
+    .btn-cancel { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 10px 24px; background: transparent; color: #aaa; border: 1px solid #ddd; border-radius: 2px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-block; }
+    .btn-cancel:hover { color: var(--navy); border-color: var(--navy); }
+    .btn-post { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 13px 36px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .btn-post:hover { background: #1e3a5f; transform: translateY(-1px); }
+    .btn-post.debate-type { background: var(--red); }
+    .btn-post.debate-type:hover { background: #8a1020; }
+    .btn-post.discussion-type { background: var(--blue); }
+    .btn-post.question-type { background: var(--green); }
+
+    /* ERRORS */
+    .field-error { font-size: 13px; color: var(--red); font-family: 'Cinzel', serif; letter-spacing: 0.05em; margin-top: 6px; display: none; }
+    .field-error.show { display: block; }
+
+    /* SUCCESS */
+    .success-state { display: none; text-align: center; padding: 70px 24px; animation: fadeIn 0.5s ease both; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .success-icon { font-size: 52px; margin-bottom: 20px; display: block; }
+    .success-title { font-family: 'Cinzel', serif; font-size: 26px; color: var(--navy); margin-bottom: 12px; }
+    .success-sub { font-size: 16px; color: #666; max-width: 420px; margin: 0 auto 32px; line-height: 1.6; }
+    .success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-success-primary { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.1em; padding: 13px 30px; background: var(--green); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .btn-success-primary:hover { background: #2a7552; }
+    .btn-success-secondary { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.1em; padding: 13px 30px; background: transparent; color: var(--navy); border: 1px solid rgba(46,80,119,0.3); border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+    .btn-success-secondary:hover { border-color: var(--navy); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .page-header { padding: 40px 24px 36px; }
+      .form-wrapper { padding: 36px 24px 60px; }
+      .type-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="logo.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div class="nav-cta" id="nav-cta">
+      <a href="debates.html" class="btn btn-outline">Sign In</a>
+      <a href="debates.html" class="btn btn-primary-nav">Join</a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="breadcrumb"><a href="debates.html">Debates</a> › New Post</div>
+      <h1 class="page-title">New Post</h1>
+      <p class="page-desc">Start a debate, open a discussion, or pose a question.</p>
+    </div>
+  </div>
+
+  <div class="form-wrapper">
+    <div id="main-form">
+
+      <!-- POST TYPE -->
+      <div class="field-group">
+        <label class="field-label">Post Type <span class="field-required">*</span></label>
+        <div class="type-grid">
+          <div class="type-card debate" onclick="selectType('debate', this)">
+            <span class="type-icon">⚔️</span>
+            <div class="type-name">Debate</div>
+            <div class="type-desc">State a thesis you defend. You are automatically For it — others argue For or Against.</div>
+          </div>
+          <div class="type-card discussion" onclick="selectType('discussion', this)">
+            <span class="type-icon">💬</span>
+            <div class="type-name">Discussion</div>
+            <div class="type-desc">An open topic with no fixed sides. All views welcome.</div>
+          </div>
+          <div class="type-card question" onclick="selectType('question', this)">
+            <span class="type-icon">❓</span>
+            <div class="type-name">Question</div>
+            <div class="type-desc">Seeking genuine answers or perspectives on something.</div>
+          </div>
+
+        </div>
+        <div class="field-error" id="err-type">Please select a post type.</div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- TITLE / THESIS -->
+      <div class="field-group">
+        <label class="field-label" id="title-label">Title <span class="field-required">*</span></label>
+        <p class="field-hint" id="title-hint">Give your post a clear, specific title.</p>
+        <input type="text" id="post-title" placeholder="Your title here..." maxlength="220" />
+        <div class="field-error" id="err-title">Please enter a title.</div>
+      </div>
+
+      <!-- BODY -->
+      <div class="field-group">
+        <label class="field-label" id="body-label">Body <span class="field-required">*</span></label>
+        <p class="field-hint" id="body-hint">Provide context, background, or your reasoning.</p>
+        <textarea id="post-body" rows="5" placeholder="Write here..."></textarea>
+        <div class="field-error" id="err-body">Please write a body for your post.</div>
+      </div>
+
+      <!-- TAGS -->
+      <div class="field-group">
+        <label class="field-label">Tags <span class="field-required">*</span> <span class="optional-badge">(minimum 2)</span></label>
+        <p class="field-hint">Create your own tags. Type a tag and press Enter or comma to add it.</p>
+        <div class="tags-wrapper">
+          <div class="tags-input-area" id="tags-area" onclick="focusTagInput()">
+            <input
+              type="text"
+              class="tag-input"
+              id="tag-input"
+              placeholder="Add a tag..."
+              onkeydown="handleTagKey(event)"
+              oninput="showSuggestions()"
+              onblur="hideSuggestions()"
+              autocomplete="off"
+            />
+          </div>
+          <div class="tag-suggestions" id="tag-suggestions" style="display:none;"></div>
+        </div>
+        <div class="tag-count-hint" id="tag-count-hint">0 tags added — need at least 2</div>
+        <div class="field-error" id="err-tags">Add at least 2 tags before posting.</div>
+      </div>
+
+      <!-- DEBATE-ONLY FIELDS -->
+      <div class="debate-fields" id="debate-fields">
+        <hr class="section-divider">
+        <p style="font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--red); margin-bottom:24px;">Debate Settings</p>
+
+        <div class="field-group">
+          <label class="field-label">Your Position <span class="optional-badge">(optional)</span></label>
+
+          <div id="for-auto-note" style="display:none; background:rgba(53,143,101,0.08); border:1px solid rgba(53,143,101,0.25); border-radius:3px; padding:10px 14px; font-family:'Cinzel',serif; font-size:11px; letter-spacing:0.1em; color:var(--green); margin-bottom:12px;">✦ You are automatically For your thesis. Others may argue either side.</div>
+          <div class="position-toggle" style="display:none;">
+            <button class="pos-opt for" onclick="selectPosition('for', this)">For</button>
+            <button class="pos-opt undecided" onclick="selectPosition('undecided', this)">Undecided</button>
+            <button class="pos-opt against" onclick="selectPosition('against', this)">Against</button>
+            <button class="pos-opt" onclick="selectPosition('none', this)" style="color:#aaa;">No Position</button>
+          </div>
+        </div>
+
+        <div id="confidence-block" style="display:none;">
+          <div class="field-group">
+            <label class="field-label">Confidence Level</label>
+            <p class="field-hint">How certain are you? 0 = barely leaning, 100 = fully convinced.</p>
+            <div class="conf-row">
+              <input type="range" class="conf-slider" min="0" max="100" value="60" id="conf-slider" oninput="updateConf(this)">
+              <div class="conf-value" id="conf-val">60%</div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">What Would Change Your Mind? <span class="field-required">*</span></label>
+            <p class="field-hint">Required if you've taken a position. Positions without conditions are not arguments.</p>
+            <textarea id="post-change" rows="3" placeholder="e.g. Evidence showing that X leads to Y in peer-reviewed studies over 10+ years..."></textarea>
+            <div class="field-error" id="err-change">Please state what would change your mind.</div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Opening Argument <span class="optional-badge">(optional)</span></label>
+          <p class="field-hint">Post the first argument in the debate. Others can argue the other side.</p>
+          <textarea id="post-argument" rows="4" placeholder="Your opening argument (optional — others can open if you prefer)..."></textarea>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="form-footer">
+        <a href="debates.html" class="btn-cancel">Cancel</a>
+        <button class="btn-post" id="submit-btn" onclick="submitPost()">Post to The Agora ✦</button>
+      </div>
+
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-state" id="success-state">
+      <span class="success-icon" id="success-icon">💬</span>
+      <h2 class="success-title" id="success-title">Posted.</h2>
+      <p class="success-sub" id="success-sub">Your post is live on The Agora.</p>
+      <div class="success-actions">
+        <a href="debate.html" class="btn-success-primary" id="success-primary-btn">View Post →</a>
+        <a href="debates.html" class="btn-success-secondary">Back to Debates</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="store.js"></script>
+  <script>
+    // ── AUTH GATE ──
+    (function() {
+      const user = localStorage.getItem('agora_user');
+      if (!user) {
+        sessionStorage.setItem('agora_redirect', 'submit');
+        location.replace('debates.html');
+      } else {
+        const navCta = document.getElementById('nav-cta');
+        if (navCta) {
+          navCta.innerHTML = `<span style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.08em;color:var(--blue);">@${user}</span>
+            <button class="btn btn-outline" onclick="localStorage.removeItem('agora_user'); location.href='debates.html'">Sign Out</button>`;
+        }
+      }
+    })();
+
+    let selectedType = '';
+    let selectedPosition = 'none';
+    let tags = [];
+
+    // Load tags async — populates the autocomplete as soon as Supabase responds
+    let allTags = [];
+    AgoraStore.getAllTags().then(t => { allTags = t; });
+
+    const typeConfig = {
+      debate: {
+        titleLabel: 'Thesis',
+        titleHint: 'State an arguable claim you will defend. Make it specific enough to be contested.',
+        bodyLabel: 'Background & Stakes',
+        bodyHint: 'Why does this question matter? What makes it genuinely contested?',
+        placeholder: 'e.g. Representative democracy is fundamentally incompatible with long-term climate policy.',
+        btnClass: 'debate-type',
+        btnText: 'Open the Debate ✦',
+        successIcon: '⚔️',
+        successTitle: 'Debate opened.',
+        successSub: 'The floor is open. Let the arguments begin.'
+      },
+      discussion: {
+        titleLabel: 'Topic',
+        titleHint: 'A clear topic for open-ended discussion.',
+        bodyLabel: 'Opening Thoughts',
+        bodyHint: 'Frame the discussion. What angles are worth exploring?',
+        placeholder: 'e.g. The role of social media in shaping political identity',
+        btnClass: 'discussion-type',
+        btnText: 'Start Discussion ✦',
+        successIcon: '💬',
+        successTitle: 'Discussion started.',
+        successSub: 'Your discussion is live on The Agora.'
+      },
+      question: {
+        titleLabel: 'Question',
+        titleHint: 'Ask clearly and specifically. Vague questions get vague answers.',
+        bodyLabel: 'Context',
+        bodyHint: 'Why are you asking? What have you already considered?',
+        placeholder: 'e.g. What distinguishes civil disobedience from mere lawbreaking?',
+        btnClass: 'question-type',
+        btnText: 'Post Question ✦',
+        successIcon: '❓',
+        successTitle: 'Question posted.',
+        successSub: 'The Agora will weigh in.'
+      }
+    };
+
+    function selectType(type, card) {
+      selectedType = type;
+      document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+
+      const cfg = typeConfig[type];
+
+      // Update labels & hints
+      document.getElementById('title-label').innerHTML = cfg.titleLabel + ' <span class="field-required">*</span>';
+      document.getElementById('title-hint').textContent = cfg.titleHint;
+      document.getElementById('post-title').placeholder = cfg.placeholder;
+      document.getElementById('body-label').innerHTML = cfg.bodyLabel + ' <span class="field-required">*</span>';
+      document.getElementById('body-hint').textContent = cfg.bodyHint;
+
+      // Show/hide debate-specific fields
+      const debateFields = document.getElementById('debate-fields');
+      if (type === 'debate') {
+        debateFields.classList.add('show');
+        // Auto-select For — you are always For your thesis
+        selectedPosition = 'for';
+        document.getElementById('confidence-block').style.display = 'block';
+        document.getElementById('for-auto-note').style.display = 'block';
+      } else {
+        debateFields.classList.remove('show');
+        document.getElementById('for-auto-note').style.display = 'none';
+      }
+
+      // Update submit button
+      const btn = document.getElementById('submit-btn');
+      btn.className = 'btn-post ' + cfg.btnClass;
+      btn.textContent = cfg.btnText;
+
+      hide('err-type');
+    }
+
+
+
+    function selectPosition(pos, btn) {
+      selectedPosition = pos;
+      document.querySelectorAll('.pos-opt').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const confBlock = document.getElementById('confidence-block');
+      confBlock.style.display = (pos !== 'none') ? 'block' : 'none';
+    }
+
+    function updateConf(slider) {
+      document.getElementById('conf-val').textContent = slider.value + '%';
+    }
+
+    // ── TAGS ──
+    function focusTagInput() {
+      document.getElementById('tag-input').focus();
+    }
+
+    function handleTagKey(e) {
+      const input = document.getElementById('tag-input');
+      const val = input.value.trim().replace(/,/g, '');
+
+      if ((e.key === 'Enter' || e.key === ',') && val) {
+        e.preventDefault();
+        addTag(val);
+        input.value = '';
+        hideSuggestions();
+      } else if (e.key === 'Backspace' && !input.value && tags.length) {
+        removeTag(tags[tags.length - 1]);
+      }
+    }
+
+    function addTag(raw) {
+      const tag = raw.toLowerCase().trim().replace(/[^a-z0-9\s\-]/g, '').trim();
+      if (!tag || tags.includes(tag)) return;
+      if (tags.length >= 8) { showTagHint('Max 8 tags', true); return; }
+      tags.push(tag);
+      if (!allTags.some(t => t.toLowerCase() === tag)) allTags.push(tag);
+      renderTags();
+      updateTagHint();
+      hide('err-tags');
+    }
+
+    function removeTag(tag) {
+      tags = tags.filter(t => t !== tag);
+      renderTags();
+      updateTagHint();
+    }
+
+    function renderTags() {
+      const area = document.getElementById('tags-area');
+      // Remove old tag pills
+      area.querySelectorAll('.tag-pill').forEach(p => p.remove());
+      const input = document.getElementById('tag-input');
+      tags.forEach(tag => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.innerHTML = `${tag} <button class="tag-remove" onmousedown="event.preventDefault(); removeTag('${tag}')">×</button>`;
+        area.insertBefore(pill, input);
+      });
+    }
+
+    function updateTagHint() {
+      const hint = document.getElementById('tag-count-hint');
+      const n = tags.length;
+      if (n === 0) { hint.textContent = '0 tags added — need at least 2'; hint.classList.remove('warn'); }
+      else if (n === 1) { hint.textContent = '1 tag added — need at least 1 more'; hint.classList.add('warn'); }
+      else { hint.textContent = n + ' tags added'; hint.classList.remove('warn'); }
+    }
+
+    function showTagHint(msg, warn) {
+      const hint = document.getElementById('tag-count-hint');
+      hint.textContent = msg;
+      hint.classList.toggle('warn', warn);
+    }
+
+    function showSuggestions() {
+      const input = document.getElementById('tag-input');
+      const q = input.value.toLowerCase().trim();
+      const box = document.getElementById('tag-suggestions');
+      if (!q) { box.style.display = 'none'; return; }
+      const tagSet = new Set(tags.map(t => t.toLowerCase()));
+      const matches = allTags
+        .filter(t => t.toLowerCase().includes(q) && !tagSet.has(t.toLowerCase()))
+        .slice(0, 6);
+      if (!matches.length) { box.style.display = 'none'; return; }
+      box.innerHTML = matches.map(t => `<div class="tag-suggestion" onmousedown="event.preventDefault(); addTag('${t}'); document.getElementById('tag-input').value=''; hideSuggestions();">${t}</div>`).join('');
+      box.style.display = 'block';
+    }
+
+    function hideSuggestions() {
+      setTimeout(() => { document.getElementById('tag-suggestions').style.display = 'none'; }, 100);
+    }
+
+    // ── VALIDATION & SUBMIT ──
+    async function submitPost() {
+      let valid = true;
+
+      if (!selectedType) { show('err-type'); valid = false; } else { hide('err-type'); }
+
+      const title = document.getElementById('post-title').value.trim();
+      if (!title) { show('err-title'); document.getElementById('post-title').classList.add('error'); valid = false; }
+      else { hide('err-title'); document.getElementById('post-title').classList.remove('error'); }
+
+      const body = document.getElementById('post-body').value.trim();
+      if (!body || body.length < 3) { show('err-body'); document.getElementById('post-body').classList.add('error'); valid = false; }
+      else { hide('err-body'); document.getElementById('post-body').classList.remove('error'); }
+
+      if (tags.length < 2) { show('err-tags'); valid = false; } else { hide('err-tags'); }
+
+      // Debate: require what-would-change
+      if (selectedType === 'debate') {
+        const change = document.getElementById('post-change').value.trim();
+        if (!change || change.length < 3) { show('err-change'); document.getElementById('post-change').classList.add('error'); valid = false; }
+        else { hide('err-change'); document.getElementById('post-change').classList.remove('error'); }
+      }
+
+      if (!valid) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+
+      // ── DISABLE BUTTON (prevent double-submit) ──
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Posting…';
+
+      // ── SAVE TO STORE (async — Supabase) ──
+      const post = await AgoraStore.createPost({
+        type:                   selectedType,
+        title,
+        body,
+        tags,
+        position:               selectedType === 'debate' ? 'for' : null,
+        confidence:             selectedType === 'debate' ? parseInt(document.getElementById('conf-slider').value) : null,
+        openingArgument:        selectedType === 'debate' ? document.getElementById('post-argument').value.trim() : null,
+        whatWouldChangeMyMind:  selectedType === 'debate' ? document.getElementById('post-change').value.trim() : null,
+      });
+
+      if (!post) {
+        btn.disabled = false;
+        btn.textContent = typeConfig[selectedType].btnText;
+        alert('Failed to post — check your connection and try again.');
+        return;
+      }
+
+      // Set as current post so debate.html knows what to load
+      AgoraStore.setCurrentPost(post.id);
+
+      // ── SHOW SUCCESS ──
+      const cfg = typeConfig[selectedType];
+      document.getElementById('main-form').style.display = 'none';
+      const s = document.getElementById('success-state');
+      document.getElementById('success-icon').textContent = cfg.successIcon;
+      document.getElementById('success-title').textContent = cfg.successTitle;
+      document.getElementById('success-sub').textContent = cfg.successSub;
+      document.getElementById('success-primary-btn').textContent = selectedType === 'debate' ? 'Enter the Debate →' : 'View Post →';
+      document.getElementById('success-primary-btn').href = 'debate.html';
+      s.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function show(id) { document.getElementById(id).classList.add('show'); }
+    function hide(id) { document.getElementById(id).classList.remove('show'); }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora — Profile</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #358f65;
+      --blue:   #71a9f7;
+      --white:  #ffffff;
+      --navy:   #2e5077;
+      --red:    #A41623;
+      --cream:  #f5f0e8;
+      --ink:    #1a1a2e;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--ink); font-family: 'EB Garamond', Georgia, serif; font-size: 18px; line-height: 1.7; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(46,80,119,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(113,169,247,0.2); }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { height: 42px; width: 42px; object-fit: contain; }
+    .nav-logo-text { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-family: 'EB Garamond', serif; font-size: 15px; color: rgba(255,255,255,0.75); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--blue); }
+    .nav-cta { display: flex; gap: 12px; align-items: center; }
+    .btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 8px 20px; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-block; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .nav-user { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; color: var(--blue); text-decoration: none; }
+    .nav-user:hover { color: var(--white); }
+
+    /* PAGE HEADER */
+    .profile-hero {
+      margin-top: 68px;
+      background: linear-gradient(160deg, var(--navy) 0%, #1a2f47 60%, #0f1e30 100%);
+      padding: 52px 48px 48px;
+      position: relative;
+    }
+    .profile-hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--red), var(--navy) 50%, var(--green)); }
+    .profile-hero-inner { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 32px; animation: fadeDown 0.5s ease both; }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; color: white;
+      flex-shrink: 0;
+      border: 3px solid rgba(255,255,255,0.15);
+    }
+    .profile-hero-text { flex: 1; }
+    .profile-username { font-family: 'Cinzel', serif; font-size: clamp(22px, 3vw, 34px); font-weight: 700; color: white; margin-bottom: 4px; }
+    .profile-tagline { font-size: 16px; color: rgba(255,255,255,0.55); font-style: italic; min-height: 24px; }
+    .profile-joined { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--blue); margin-top: 8px; }
+
+    /* EDIT BUTTON */
+    .edit-btn {
+      font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.1em;
+      padding: 9px 22px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.7);
+      border-radius: 2px; cursor: pointer; transition: all 0.2s;
+      align-self: flex-start; margin-top: 6px; white-space: nowrap;
+    }
+    .edit-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .edit-btn.saving { opacity: 0.6; cursor: default; }
+
+    /* MAIN CONTENT */
+    .profile-body { max-width: 760px; margin: 0 auto; padding: 48px 48px 96px; }
+
+    /* FIELD CARDS */
+    .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .field-card {
+      background: white;
+      border: 1px solid rgba(46,80,119,0.1);
+      border-radius: 3px;
+      padding: 24px 26px;
+      transition: box-shadow 0.2s;
+    }
+    .field-card.full-width { grid-column: 1 / -1; }
+    .field-card:hover { box-shadow: 0 4px 16px rgba(46,80,119,0.06); }
+    .field-key {
+      font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--navy); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .field-key-icon { font-size: 14px; }
+    .field-value {
+      font-size: 17px; color: var(--ink); line-height: 1.6;
+      min-height: 28px;
+    }
+    .field-value.empty { color: #ccc; font-style: italic; font-size: 15px; }
+
+    /* EDIT MODE */
+    .field-input, .field-textarea {
+      width: 100%; font-family: 'EB Garamond', serif; font-size: 17px;
+      padding: 8px 12px; border: 1px solid rgba(46,80,119,0.25); border-radius: 3px;
+      outline: none; background: white; color: var(--ink); transition: border-color 0.2s, box-shadow 0.2s;
+      line-height: 1.6;
+    }
+    .field-input:focus, .field-textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(46,80,119,0.07); }
+    .field-textarea { resize: vertical; min-height: 80px; }
+
+    /* SAVE/CANCEL ROW */
+    .save-row { display: none; gap: 12px; margin-top: 32px; }
+    .save-row.show { display: flex; }
+    .save-btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 11px 30px; background: var(--green); color: white; border: none; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .save-btn:hover { background: #2a7552; }
+    .cancel-btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 11px 22px; background: transparent; color: #aaa; border: 1px solid #ddd; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .cancel-btn:hover { color: var(--navy); border-color: var(--navy); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--ink); color: white; font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.1em; padding: 12px 24px; border-radius: 2px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 999; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .profile-hero { padding: 36px 24px 40px; }
+      .profile-hero-inner { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .profile-body { padding: 32px 24px 60px; }
+      .fields-grid { grid-template-columns: 1fr; }
+      .field-card.full-width { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="logo.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div class="nav-cta" id="nav-cta"></div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="profile-hero">
+    <div class="profile-hero-inner">
+      <div class="avatar" id="avatar">?</div>
+      <div class="profile-hero-text">
+        <div class="profile-username" id="display-username">—</div>
+        <div class="profile-tagline" id="display-tagline"></div>
+        <div class="profile-joined"  id="display-joined"></div>
+      </div>
+      <button class="edit-btn" id="edit-btn" onclick="toggleEdit()">Edit Profile</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="profile-body">
+    <div class="fields-grid" id="fields-grid">
+
+      <div class="field-card">
+        <div class="field-key"><span class="field-key-icon">💬</span> Tagline</div>
+        <div class="field-value" id="view-tagline"></div>
+        <input  type="text" class="field-input"    id="edit-tagline"    placeholder="A short line that defines you..." maxlength="120" style="display:none;" />
+      </div>
+
+      <div class="field-card">
+        <div class="field-key"><span class="field-key-icon">💼</span> Occupation</div>
+        <div class="field-value" id="view-occupation"></div>
+        <input  type="text" class="field-input"    id="edit-occupation" placeholder="Student, engineer, writer..." maxlength="80" style="display:none;" />
+      </div>
+
+      <div class="field-card full-width">
+        <div class="field-key"><span class="field-key-icon">🎯</span> Goals</div>
+        <div class="field-value" id="view-goals"></div>
+        <textarea class="field-textarea" id="edit-goals" placeholder="What are you working toward?" maxlength="400" style="display:none;"></textarea>
+      </div>
+
+      <div class="field-card full-width">
+        <div class="field-key"><span class="field-key-icon">🧠</span> Core Belief</div>
+        <div class="field-value" id="view-belief"></div>
+        <textarea class="field-textarea" id="edit-belief" placeholder="The view you'd defend in any room." maxlength="400" style="display:none;"></textarea>
+      </div>
+
+      <div class="field-card full-width">
+        <div class="field-key"><span class="field-key-icon">✦</span> Hobbies</div>
+        <div class="field-value" id="view-hobbies"></div>
+        <input  type="text" class="field-input"    id="edit-hobbies"    placeholder="Debate, chess, reading..." maxlength="160" style="display:none;" />
+      </div>
+
+    </div>
+
+    <!-- SAVE / CANCEL (visible in edit mode) -->
+    <div class="save-row" id="save-row">
+      <button class="save-btn"   onclick="saveProfile()">Save Changes ✦</button>
+      <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── AUTH GATE ──
+    const currentUser = localStorage.getItem('agora_user');
+    if (!currentUser) {
+      sessionStorage.setItem('agora_redirect', 'profile');
+      location.replace('debates.html');
+    }
+
+    // ── ACCOUNT HELPERS ──
+    function getAccounts() {
+      try { return JSON.parse(localStorage.getItem('agora_accounts') || '{}'); } catch { return {}; }
+    }
+    function saveAccounts(obj) { localStorage.setItem('agora_accounts', JSON.stringify(obj)); }
+
+    function getProfile() {
+      const accts = getAccounts();
+      return accts[currentUser.toLowerCase()] || {};
+    }
+
+    function saveProfileData(fields) {
+      const accts = getAccounts();
+      const key   = currentUser.toLowerCase();
+      accts[key]  = Object.assign(accts[key] || {}, fields);
+      saveAccounts(accts);
+    }
+
+    // ── RENDER ──
+    function renderProfile() {
+      const p = getProfile();
+
+      // Avatar: first letter of username
+      document.getElementById('avatar').textContent = currentUser.charAt(0).toUpperCase();
+      document.getElementById('display-username').textContent = p.username || currentUser;
+
+      // Tagline in hero
+      const taglineEl = document.getElementById('display-tagline');
+      taglineEl.textContent = p.tagline || '';
+      taglineEl.style.display = p.tagline ? 'block' : 'none';
+
+      // Joined
+      const joinedEl = document.getElementById('display-joined');
+      if (p.joinedAt) {
+        const d = new Date(p.joinedAt);
+        joinedEl.textContent = 'Joined ' + d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      } else {
+        joinedEl.textContent = '';
+      }
+
+      // Nav
+      const navCta = document.getElementById('nav-cta');
+      navCta.innerHTML = `<a class="nav-user" href="profile.html">@${currentUser}</a>
+        <button class="btn btn-outline" onclick="localStorage.removeItem('agora_user'); location.href='debates.html'">Sign Out</button>`;
+
+      // Field views
+      setView('view-tagline',    p.tagline,    'A short line that defines you...');
+      setView('view-occupation', p.occupation, 'Not set');
+      setView('view-goals',      p.goals,      'Not set');
+      setView('view-belief',     p.belief,     'Not set');
+      setView('view-hobbies',    p.hobbies,    'Not set');
+
+      // Field inputs (pre-fill for edit mode)
+      setValue('edit-tagline',    p.tagline);
+      setValue('edit-occupation', p.occupation);
+      setValue('edit-goals',      p.goals);
+      setValue('edit-belief',     p.belief);
+      setValue('edit-hobbies',    p.hobbies);
+    }
+
+    function setView(id, val, placeholder) {
+      const el = document.getElementById(id);
+      if (val && val.trim()) {
+        el.textContent = val;
+        el.classList.remove('empty');
+      } else {
+        el.textContent = placeholder;
+        el.classList.add('empty');
+      }
+    }
+
+    function setValue(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.value = val || '';
+    }
+
+    // ── EDIT / SAVE / CANCEL ──
+    let editing = false;
+
+    function toggleEdit() {
+      if (editing) { cancelEdit(); return; }
+      editing = true;
+
+      // Swap views → inputs
+      ['tagline','occupation','goals','belief','hobbies'].forEach(f => {
+        document.getElementById('view-' + f).style.display = 'none';
+        document.getElementById('edit-' + f).style.display = 'block';
+      });
+
+      document.getElementById('save-row').classList.add('show');
+      document.getElementById('edit-btn').textContent = 'Cancel';
+      document.getElementById('edit-tagline').focus();
+    }
+
+    function cancelEdit() {
+      editing = false;
+      // Restore inputs with saved values and swap back
+      const p = getProfile();
+      setValue('edit-tagline',    p.tagline);
+      setValue('edit-occupation', p.occupation);
+      setValue('edit-goals',      p.goals);
+      setValue('edit-belief',     p.belief);
+      setValue('edit-hobbies',    p.hobbies);
+
+      ['tagline','occupation','goals','belief','hobbies'].forEach(f => {
+        document.getElementById('view-' + f).style.display = 'block';
+        document.getElementById('edit-' + f).style.display = 'none';
+      });
+
+      document.getElementById('save-row').classList.remove('show');
+      document.getElementById('edit-btn').textContent = 'Edit Profile';
+    }
+
+    function saveProfile() {
+      const fields = {
+        tagline:    document.getElementById('edit-tagline').value.trim(),
+        occupation: document.getElementById('edit-occupation').value.trim(),
+        goals:      document.getElementById('edit-goals').value.trim(),
+        belief:     document.getElementById('edit-belief').value.trim(),
+        hobbies:    document.getElementById('edit-hobbies').value.trim(),
+      };
+
+      saveProfileData(fields);
+      editing = false;
+
+      // Swap back to view mode
+      ['tagline','occupation','goals','belief','hobbies'].forEach(f => {
+        document.getElementById('view-' + f).style.display = 'block';
+        document.getElementById('edit-' + f).style.display = 'none';
+      });
+
+      document.getElementById('save-row').classList.remove('show');
+      document.getElementById('edit-btn').textContent = 'Edit Profile';
+
+      // Update hero tagline live
+      const taglineEl = document.getElementById('display-tagline');
+      taglineEl.textContent = fields.tagline || '';
+      taglineEl.style.display = fields.tagline ? 'block' : 'none';
+
+      // Re-render field views
+      setView('view-tagline',    fields.tagline,    'A short line that defines you...');
+      setView('view-occupation', fields.occupation, 'Not set');
+      setView('view-goals',      fields.goals,      'Not set');
+      setView('view-belief',     fields.belief,     'Not set');
+      setView('view-hobbies',    fields.hobbies,    'Not set');
+
+      showToast('Profile saved ✦');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    renderProfile();
+  </script>
+
+</body>
+</html>

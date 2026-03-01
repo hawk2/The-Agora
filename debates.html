@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora — Debates</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green:  #358f65;
+      --blue:   #71a9f7;
+      --white:  #ffffff;
+      --navy:   #2e5077;
+      --red:    #A41623;
+      --cream:  #f5f0e8;
+      --ink:    #1a1a2e;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--cream); color: var(--ink); font-family: 'EB Garamond', Georgia, serif; font-size: 18px; line-height: 1.7; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 1000; opacity: 0.4; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 48px; height: 68px; background: rgba(46,80,119,0.97); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(113,169,247,0.2); }
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { height: 42px; width: 42px; object-fit: contain; }
+    .nav-logo-text { font-family: 'Cinzel', serif; font-size: 20px; font-weight: 600; color: var(--white); letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a { font-family: 'EB Garamond', serif; font-size: 15px; color: rgba(255,255,255,0.75); text-decoration: none; letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--blue); }
+    .nav-cta { display: flex; gap: 12px; align-items: center; }
+    .btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 8px 20px; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; border: none; display: inline-block; }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: #2a7552; }
+    .nav-user { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; color: var(--blue); }
+
+    /* PAGE HEADER */
+    .page-hero {
+      margin-top: 68px;
+      background: linear-gradient(160deg, var(--navy) 0%, #1a2f47 60%, #0f1e30 100%);
+      padding: 56px 48px 44px;
+      position: relative;
+    }
+    .page-hero::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--red), var(--navy) 50%, var(--green)); }
+    .page-hero-inner { max-width: 1100px; margin: 0 auto; }
+    .eyebrow { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--blue); margin-bottom: 10px; }
+    .page-hero h1 { font-family: 'Cinzel', serif; font-size: clamp(28px, 4vw, 44px); color: var(--white); line-height: 1.15; margin-bottom: 8px; }
+    .page-hero p { color: rgba(255,255,255,0.6); font-size: 17px; max-width: 600px; }
+
+    /* DEBATES SECTION */
+    .debates-section { max-width: 1100px; margin: 0 auto; padding: 56px 48px 96px; }
+    .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 36px; flex-wrap: wrap; gap: 16px; }
+    .section-label { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .section-title { font-family: 'Cinzel', serif; font-size: clamp(22px, 3vw, 32px); font-weight: 600; color: var(--navy); }
+    .new-debate-btn { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.1em; padding: 12px 28px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .new-debate-btn:hover { background: #1e3a5f; transform: translateY(-1px); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 80px 24px; border: 2px dashed rgba(46,80,119,0.15); border-radius: 4px; background: rgba(255,255,255,0.5); }
+    .empty-icon { font-size: 48px; margin-bottom: 20px; display: block; }
+    .empty-title { font-family: 'Cinzel', serif; font-size: 22px; color: var(--navy); margin-bottom: 12px; }
+    .empty-sub { font-size: 16px; color: #888; max-width: 440px; margin: 0 auto 32px; line-height: 1.6; }
+    .empty-btn { font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 0.1em; padding: 14px 36px; background: var(--green); color: white; border: none; border-radius: 2px; cursor: pointer; text-decoration: none; transition: all 0.2s; display: inline-block; }
+    .empty-btn:hover { background: #2a7552; transform: translateY(-2px); }
+
+    /* DEBATE CARDS */
+    .debates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .debate-card { background: white; border: 1px solid rgba(46,80,119,0.12); border-left: 4px solid var(--navy); border-radius: 3px; padding: 28px; cursor: pointer; transition: all 0.25s; text-decoration: none; display: block; color: inherit; }
+    .debate-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(46,80,119,0.1); border-left-color: var(--green); }
+    .card-category { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+    .card-title { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 600; color: var(--navy); line-height: 1.3; margin-bottom: 10px; }
+    .card-desc { font-size: 14px; color: #777; line-height: 1.6; margin-bottom: 18px; }
+    .card-meta { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 14px; font-size: 13px; }
+    .card-pills { display: flex; gap: 6px; }
+    .pill { font-family: 'Cinzel', serif; font-size: 10px; padding: 3px 10px; border-radius: 20px; }
+    .pill-for { background: rgba(53,143,101,0.1); color: var(--green); }
+    .pill-against { background: rgba(164,22,35,0.08); color: var(--red); }
+    .card-age { color: #bbb; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.05em; }
+
+    /* AUTH MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(15,30,48,0.7);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .modal {
+      background: white;
+      border-top: 4px solid var(--navy);
+      border-radius: 3px;
+      padding: 36px 40px 40px;
+      max-width: 440px;
+      width: 100%;
+      animation: modalIn 0.25s ease both;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* tabs */
+    .modal-tabs { display: flex; gap: 0; border-bottom: 2px solid rgba(46,80,119,0.12); margin-bottom: 28px; }
+    .modal-tab { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; padding: 10px 20px 10px 0; background: none; border: none; cursor: pointer; color: #aaa; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .modal-tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+    .modal-tab:hover:not(.active) { color: var(--navy); }
+
+    /* panels */
+    .modal-panel { display: none; }
+    .modal-panel.active { display: block; }
+
+    .modal-title { font-family: 'Cinzel', serif; font-size: 20px; color: var(--navy); margin-bottom: 6px; }
+    .modal-desc { font-size: 15px; color: #888; margin-bottom: 22px; line-height: 1.5; }
+
+    .modal-field { margin-bottom: 14px; }
+    .modal-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--navy); display: block; margin-bottom: 6px; }
+    .modal-input {
+      width: 100%;
+      font-family: 'EB Garamond', serif;
+      font-size: 17px;
+      padding: 10px 13px;
+      border: 1px solid rgba(46,80,119,0.25);
+      border-radius: 3px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .modal-input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(46,80,119,0.07); }
+    .modal-input.err { border-color: var(--red); }
+
+    .modal-error { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.05em; color: var(--red); margin-top: 5px; display: none; }
+    .modal-error.show { display: block; }
+    .modal-error-global { font-family: 'Cinzel', serif; font-size: 12px; color: var(--red); background: rgba(164,22,35,0.06); border: 1px solid rgba(164,22,35,0.2); border-radius: 3px; padding: 9px 13px; margin-bottom: 16px; display: none; letter-spacing: 0.03em; }
+    .modal-error-global.show { display: block; }
+
+    .modal-actions { display: flex; gap: 12px; margin-top: 22px; }
+    .modal-btn-primary { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 11px 24px; background: var(--navy); color: white; border: none; border-radius: 2px; cursor: pointer; transition: all 0.2s; flex: 1; }
+    .modal-btn-primary:hover { background: #1e3a5f; }
+    .modal-btn-primary:disabled { opacity: 0.5; cursor: default; }
+    .modal-btn-cancel { font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 0.08em; padding: 11px 20px; background: transparent; color: #aaa; border: 1px solid #ddd; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
+    .modal-btn-cancel:hover { color: var(--navy); border-color: var(--navy); }
+
+    /* FOOTER */
+    footer { background: var(--ink); color: rgba(255,255,255,0.4); padding: 40px 48px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-logo { font-family: 'Cinzel', serif; font-size: 18px; color: white; letter-spacing: 0.08em; }
+    .footer-motto { font-style: italic; font-size: 14px; margin-top: 4px; }
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-family: 'Cinzel', serif; letter-spacing: 0.08em; transition: color 0.2s; }
+    .footer-links a:hover, .footer-links a.active { color: var(--blue); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .page-hero { padding: 44px 24px 36px; }
+      .debates-section { padding: 40px 24px 60px; }
+      footer { flex-direction: column; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="logo.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a class="active" href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div class="nav-cta" id="nav-cta">
+      <button class="btn btn-outline" onclick="openModal()">Sign In</button>
+      <button class="btn btn-primary" onclick="openModal()">Join</button>
+    </div>
+  </nav>
+
+  <header class="page-hero">
+    <div class="page-hero-inner">
+      <p class="eyebrow">Open Forum</p>
+      <h1>Active Debates</h1>
+      <p>Anyone can read. Sign in to argue.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="debates-section">
+      <div class="section-header">
+        <div>
+          <p class="section-label">Open Now</p>
+          <h2 class="section-title">All Debates</h2>
+        </div>
+        <button class="new-debate-btn" onclick="requireAuth(() => location.href='submit.html')">+ Start a Debate</button>
+      </div>
+
+      <div class="empty-state" id="empty-state">
+        <span class="empty-icon">⚖️</span>
+        <h3 class="empty-title">The floor is open.</h3>
+        <p class="empty-sub">No debates have been started yet. The Agora is yours — bring a question worth arguing about.</p>
+        <button class="empty-btn" onclick="requireAuth(() => location.href='submit.html')">Start the First Debate</button>
+      </div>
+
+      <div class="debates-grid" id="debates-grid" style="display:none;"></div>
+    </div>
+  </main>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="auth-modal" style="display:none;" onclick="handleOverlayClick(event)">
+    <div class="modal">
+
+      <!-- TABS -->
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="tab-signin"  onclick="switchTab('signin')">Sign In</button>
+        <button class="modal-tab"        id="tab-signup"  onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <!-- SIGN IN PANEL -->
+      <div class="modal-panel active" id="panel-signin">
+        <h2 class="modal-title">Welcome back.</h2>
+        <p class="modal-desc">Sign in with your username and password.</p>
+        <div class="modal-error-global" id="signin-error"></div>
+        <div class="modal-field">
+          <label class="modal-label">Username</label>
+          <input type="text" id="signin-username" class="modal-input" placeholder="your_username" maxlength="30" autocomplete="username" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Password</label>
+          <input type="password" id="signin-password" class="modal-input" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-primary" onclick="doSignIn()">Sign In ✦</button>
+          <button class="modal-btn-cancel"  onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- CREATE ACCOUNT PANEL -->
+      <div class="modal-panel" id="panel-signup">
+        <h2 class="modal-title">Join The Agora.</h2>
+        <p class="modal-desc">Create an account to post debates and arguments.</p>
+        <div class="modal-error-global" id="signup-error"></div>
+        <div class="modal-field">
+          <label class="modal-label">Username</label>
+          <input type="text" id="signup-username" class="modal-input" placeholder="your_username" maxlength="30" autocomplete="username" />
+          <div class="modal-error" id="err-signup-username"></div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Email</label>
+          <input type="email" id="signup-email" class="modal-input" placeholder="you@example.com" autocomplete="email" />
+          <div class="modal-error" id="err-signup-email"></div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Password</label>
+          <input type="password" id="signup-password" class="modal-input" placeholder="At least 6 characters" autocomplete="new-password" />
+          <div class="modal-error" id="err-signup-password"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-primary" onclick="doSignUp()">Create Account ✦</button>
+          <button class="modal-btn-cancel"  onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <div>
+      <div class="footer-logo">The Agora</div>
+      <div class="footer-motto">"Strong opinions, loosely held." — Paul Saffo</div>
+    </div>
+    <ul class="footer-links">
+      <li><a class="active" href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div style="font-size:13px;">© 2026 The Agora · Hawken Parkman</div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="store.js"></script>
+  <script>
+    // ── ACCOUNT STORE (localStorage) ──────────────────────────────────────────
+    // agora_accounts: { [username_lower]: { username, email, password } }
+    // agora_user:     currently logged-in username (display form)
+
+    function getAccounts() {
+      try { return JSON.parse(localStorage.getItem('agora_accounts') || '{}'); } catch { return {}; }
+    }
+    function saveAccounts(obj) { localStorage.setItem('agora_accounts', JSON.stringify(obj)); }
+
+    // ── MODAL STATE ────────────────────────────────────────────────────────────
+    let _afterLogin = null;
+
+    function requireAuth(then) {
+      if (localStorage.getItem('agora_user')) { then(); return; }
+      _afterLogin = then;
+      openModal('signin');
+    }
+
+    function openModal(tab) {
+      switchTab(tab || 'signin');
+      clearModalErrors();
+      document.getElementById('auth-modal').style.display = 'flex';
+      setTimeout(() => {
+        const f = tab === 'signup'
+          ? document.getElementById('signup-username')
+          : document.getElementById('signin-username');
+        f && f.focus();
+      }, 60);
+    }
+
+    function closeModal() {
+      document.getElementById('auth-modal').style.display = 'none';
+      clearModalErrors();
+      ['signin-username','signin-password','signup-username','signup-email','signup-password']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      _afterLogin = null;
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('auth-modal')) closeModal();
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tab-signin').classList.toggle('active', tab === 'signin');
+      document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+      document.getElementById('panel-signin').classList.toggle('active', tab === 'signin');
+      document.getElementById('panel-signup').classList.toggle('active', tab === 'signup');
+      clearModalErrors();
+    }
+
+    function clearModalErrors() {
+      ['signin-error','signup-error','err-signup-username','err-signup-email','err-signup-password']
+        .forEach(id => { const el = document.getElementById(id); if (el) { el.classList.remove('show'); el.textContent = ''; } });
+      document.querySelectorAll('.modal-input').forEach(i => i.classList.remove('err'));
+    }
+
+    function showGlobalErr(panelId, msg) {
+      const el = document.getElementById(panelId);
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    function showFieldErr(errId, inputId, msg) {
+      const err = document.getElementById(errId);
+      err.textContent = msg;
+      err.classList.add('show');
+      document.getElementById(inputId).classList.add('err');
+    }
+
+    // ── SIGN IN ────────────────────────────────────────────────────────────────
+    function doSignIn() {
+      clearModalErrors();
+      const username = document.getElementById('signin-username').value.trim();
+      const password = document.getElementById('signin-password').value;
+
+      if (!username || !password) {
+        showGlobalErr('signin-error', 'Please enter your username and password.');
+        return;
+      }
+
+      const accounts = getAccounts();
+      const acct = accounts[username.toLowerCase()];
+
+      if (!acct) {
+        showGlobalErr('signin-error', 'No account found with that username.');
+        return;
+      }
+      if (acct.password !== password) {
+        showGlobalErr('signin-error', 'Incorrect password.');
+        document.getElementById('signin-password').classList.add('err');
+        return;
+      }
+
+      finishLogin(acct.username);
+    }
+
+    // ── SIGN UP ────────────────────────────────────────────────────────────────
+    function doSignUp() {
+      clearModalErrors();
+      const username = document.getElementById('signup-username').value.trim();
+      const email    = document.getElementById('signup-email').value.trim();
+      const password = document.getElementById('signup-password').value;
+      let valid = true;
+
+      if (!username || username.length < 2) {
+        showFieldErr('err-signup-username', 'signup-username', 'Username must be at least 2 characters.');
+        valid = false;
+      } else if (!/^[a-zA-Z0-9_\-\.]+$/.test(username)) {
+        showFieldErr('err-signup-username', 'signup-username', 'Letters, numbers, _ - . only.');
+        valid = false;
+      }
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showFieldErr('err-signup-email', 'signup-email', 'Please enter a valid email address.');
+        valid = false;
+      }
+
+      if (!password || password.length < 6) {
+        showFieldErr('err-signup-password', 'signup-password', 'Password must be at least 6 characters.');
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      const accounts = getAccounts();
+      if (accounts[username.toLowerCase()]) {
+        showFieldErr('err-signup-username', 'signup-username', 'That username is already taken.');
+        return;
+      }
+
+      accounts[username.toLowerCase()] = { username, email, password, joinedAt: new Date().toISOString() };
+      saveAccounts(accounts);
+      finishLogin(username);
+    }
+
+    // ── SHARED LOGIN FINISH ────────────────────────────────────────────────────
+    function finishLogin(username) {
+      localStorage.setItem('agora_user', username);
+      closeModal();
+      updateNavAuth();
+      const redirect = sessionStorage.getItem('agora_redirect');
+      if (redirect) {
+        sessionStorage.removeItem('agora_redirect');
+        location.href = redirect + '.html';
+        return;
+      }
+      if (_afterLogin) { _afterLogin(); _afterLogin = null; }
+    }
+
+    function signOut() {
+      localStorage.removeItem('agora_user');
+      updateNavAuth();
+    }
+
+    function updateNavAuth() {
+      const user = localStorage.getItem('agora_user');
+      const navCta = document.getElementById('nav-cta');
+      if (user) {
+        navCta.innerHTML = `<a class="nav-user" href="profile.html">@${user}</a>
+          <button class="btn btn-outline" onclick="signOut()">Sign Out</button>`;
+      } else {
+        navCta.innerHTML = `
+          <button class="btn btn-outline" onclick="openModal('signin')">Sign In</button>
+          <button class="btn btn-primary"  onclick="openModal('signup')">Join</button>`;
+      }
+    }
+
+    // ── DEBATES LIST ───────────────────────────────────────────────────────────
+    async function renderDebates() {
+      const posts = await AgoraStore.getAllPosts();
+      const emptyState = document.getElementById('empty-state');
+      const grid = document.getElementById('debates-grid');
+      if (!posts.length) {
+        emptyState.style.display = 'block';
+        grid.style.display = 'none';
+        return;
+      }
+      emptyState.style.display = 'none';
+      grid.style.display = 'grid';
+      grid.innerHTML = posts.map(p => AgoraStore.renderPostCard(p)).join('');
+    }
+
+    // Enter key support
+    document.getElementById('signin-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('signin-password').focus(); });
+    document.getElementById('signin-password').addEventListener('keydown', e => { if (e.key === 'Enter') doSignIn(); });
+    document.getElementById('signup-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('signup-email').focus(); });
+    document.getElementById('signup-email').addEventListener('keydown',    e => { if (e.key === 'Enter') document.getElementById('signup-password').focus(); });
+    document.getElementById('signup-password').addEventListener('keydown', e => { if (e.key === 'Enter') doSignUp(); });
+
+    updateNavAuth();
+    renderDebates();
+  </script>
+
+</body>
+</html>

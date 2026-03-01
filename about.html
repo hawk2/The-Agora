@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Agora - About</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #358f65;
+      --blue: #71a9f7;
+      --white: #ffffff;
+      --navy: #2e5077;
+      --red: #A41623;
+      --cream: #f5f0e8;
+      --ink: #1a1a2e;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 68px;
+      background: rgba(46,80,119,0.97);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(113,169,247,0.2);
+    }
+
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .nav-logo img { height: 42px; width: 42px; object-fit: contain; }
+    .nav-logo-text {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.04em;
+    }
+
+    .nav-links { display: flex; gap: 36px; list-style: none; }
+    .nav-links a {
+      font-family: 'EB Garamond', serif;
+      font-size: 15px;
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover,
+    .nav-links a.active { color: var(--blue); }
+
+    .nav-cta { display: flex; gap: 12px; }
+    .btn {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      padding: 8px 20px;
+      border-radius: 2px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      display: inline-block;
+    }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: var(--white); }
+    .btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: #2a7552; }
+
+    .hero {
+      margin-top: 68px;
+      background: linear-gradient(160deg, var(--navy) 0%, #1a2f47 60%, #0f1e30 100%);
+      padding: 72px 48px 52px;
+      position: relative;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--navy) 50%, var(--green));
+    }
+
+    .hero-inner { max-width: 980px; margin: 0 auto; }
+    .eyebrow {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+    .hero h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(30px, 5vw, 54px);
+      color: var(--white);
+      margin-bottom: 12px;
+      line-height: 1.15;
+    }
+    .hero p {
+      color: rgba(255,255,255,0.68);
+      max-width: 680px;
+      font-size: 18px;
+    }
+
+    main { max-width: 1080px; margin: 0 auto; padding: 56px 48px 84px; }
+
+    .section-label {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(24px, 3vw, 36px);
+      color: var(--navy);
+      margin-bottom: 28px;
+      line-height: 1.2;
+    }
+
+    .mission-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+      margin-bottom: 56px;
+    }
+
+    .mission-card {
+      background: rgba(255,255,255,0.75);
+      border: 1px solid rgba(46,80,119,0.14);
+      border-top: 3px solid var(--navy);
+      border-radius: 3px;
+      padding: 24px 22px;
+    }
+
+    .mission-card h3 {
+      font-family: 'Cinzel', serif;
+      color: var(--navy);
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    .mission-card p { color: #4f5568; font-size: 16px; }
+
+    .principles {
+      background: var(--navy);
+      border-top: 4px solid var(--red);
+      padding: 44px 32px;
+      border-radius: 3px;
+      margin-bottom: 56px;
+    }
+
+    .principles h2 {
+      font-family: 'Cinzel', serif;
+      color: var(--white);
+      font-size: clamp(24px, 3.5vw, 34px);
+      margin-bottom: 26px;
+    }
+
+    .principles-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .principle-item {
+      border: 1px solid rgba(113,169,247,0.2);
+      padding: 18px;
+      border-radius: 2px;
+    }
+
+    .principle-item strong {
+      display: block;
+      font-family: 'Cinzel', serif;
+      color: var(--blue);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .principle-item p { color: rgba(255,255,255,0.72); font-size: 15px; }
+
+    .censorship-section {
+      background: white;
+      border: 1px solid rgba(46,80,119,0.12);
+      border-top: 4px solid var(--red);
+      border-radius: 3px;
+      padding: 44px 40px;
+      margin-bottom: 56px;
+    }
+
+    .censorship-section .section-label { color: var(--red); }
+
+    .censorship-section .section-title {
+      margin-bottom: 20px;
+    }
+
+    .censorship-intro {
+      font-size: 17px;
+      color: #555;
+      font-style: italic;
+      margin-bottom: 28px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(46,80,119,0.08);
+      max-width: 720px;
+    }
+
+    .censorship-block {
+      margin-bottom: 32px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid rgba(46,80,119,0.07);
+    }
+
+    .censorship-block:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .censorship-rule-title {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    .censorship-rule-title.warn { color: var(--red); }
+
+    .censorship-block p {
+      color: #4a4a5a;
+      font-size: 17px;
+      line-height: 1.75;
+      max-width: 720px;
+    }
+
+    .censorship-block p + p { margin-top: 14px; }
+
+    .cta-row {
+      background: linear-gradient(135deg, var(--green), #2a7552);
+      border-radius: 3px;
+      padding: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .cta-copy h3 {
+      font-family: 'Cinzel', serif;
+      color: white;
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .cta-copy p { color: rgba(255,255,255,0.72); }
+
+    .cta-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      padding: 12px 28px;
+      background: white;
+      color: var(--green);
+      text-decoration: none;
+      border-radius: 2px;
+    }
+
+    footer {
+      background: var(--ink);
+      color: rgba(255,255,255,0.4);
+      padding: 40px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo { font-family: 'Cinzel', serif; font-size: 18px; color: white; letter-spacing: 0.08em; }
+    .footer-motto { font-style: italic; font-size: 14px; margin-top: 4px; }
+
+    .footer-links { display: flex; gap: 24px; list-style: none; }
+    .footer-links a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      font-size: 13px;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover,
+    .footer-links a.active { color: var(--blue); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 52px 24px 38px; }
+      main { padding: 40px 24px 56px; }
+      .principles { padding: 30px 22px; }
+      .cta-row { padding: 24px; }
+      footer { flex-direction: column; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="index.html">
+      <img src="logo.png" alt="The Agora" />
+      <span class="nav-logo-text">The Agora</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a class="active" href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="debates.html" class="btn btn-outline">Sign In</a>
+      <a href="debates.html" class="btn btn-primary">Join</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">About The Agora</p>
+      <h1>A place to reason in public.</h1>
+      <p>The Agora exists for people who can argue hard, listen honestly, and update their views when the evidence gets better.</p>
+    </div>
+  </header>
+
+  <main>
+    <p class="section-label">Purpose</p>
+    <h2 class="section-title">Built for disagreement without contempt</h2>
+
+    <section class="mission-grid">
+      <article class="mission-card">
+        <h3>Clear Claims</h3>
+        <p>Posts should make testable claims, not vague vibes. Specific arguments create useful disagreements.</p>
+      </article>
+      <article class="mission-card">
+        <h3>Strongest Opponent</h3>
+        <p>Participants are expected to steelman views they reject before rebutting them.</p>
+      </article>
+      <article class="mission-card">
+        <h3>Public Updates</h3>
+        <p>Changing your mind is rewarded. Intellectual honesty is treated as progress, not weakness.</p>
+      </article>
+    </section>
+
+    <section class="principles">
+      <h2>Core Principles</h2>
+      <div class="principles-list">
+        <div class="principle-item">
+          <strong>Good Faith First</strong>
+          <p>Assume the other person may know something you do not, and argue from that premise.</p>
+        </div>
+        <div class="principle-item">
+          <strong>Evidence Over Volume</strong>
+          <p>The strongest argument wins here, not the loudest tone or longest thread.</p>
+        </div>
+        <div class="principle-item">
+          <strong>Accountable Confidence</strong>
+          <p>Confidence without a condition for revision is treated as a weak position.</p>
+        </div>
+        <div class="principle-item">
+          <strong>Respect the Person</strong>
+          <p>Attack claims and assumptions, never identity, status, or character.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="censorship-section">
+      <p class="section-label">Moderation Policy</p>
+      <h2 class="section-title">On Censorship</h2>
+      <p class="censorship-intro">Our censorship policy, stated plainly. We think the word "censorship" gets avoided in most community guidelines because it's uncomfortable. We're going to use it directly, because we think clarity here is more important than comfort.</p>
+
+      <div class="censorship-block">
+        <h3 class="censorship-rule-title">Deleting or altering someone's words without their consent is censorship.</h3>
+        <p>We know this. We own it when we do it, and we try very hard not to.</p>
+      </div>
+
+      <div class="censorship-block">
+        <h3 class="censorship-rule-title">We will never silently edit a post.</h3>
+        <p>If a post is ever modified by a moderator — for any reason — it will carry a clear, visible notice that it was edited, by whom, and why. A post without that notice is exactly as its author left it. We consider undisclosed editing to be a form of deception and we will not do it.</p>
+      </div>
+
+      <div class="censorship-block">
+        <h3 class="censorship-rule-title">What we will remove.</h3>
+        <p>We will delete posts that are not arguments at all — spam, unsolicited advertising, automated content, and posts that exist only to disrupt rather than engage. We acknowledge that this is censorship. There are places to advertise or maybe even to spam, but The Agora is not that place.</p>
+      </div>
+
+      <div class="censorship-block">
+        <h3 class="censorship-rule-title warn">What we will not remove.</h3>
+        <p>We will not remove posts because they are wrong. We will not remove posts because they are offensive to some members, or because they express a view that is unpopular, heterodox, or contested. We will not remove posts because they have been labeled "hate speech" — a category so loosely and politically applied that acting on it would require us to appoint ourselves arbiters of which ideas are permissible. We are not equipped for that role and we do not want it.</p>
+        <p>We will not be the thought police. If an argument is wrong, the answer is a better argument. That is the entire premise of this platform. Removing bad arguments doesn't make them go away — it just removes the opportunity to publicly dismantle them.</p>
+      </div>
+
+      <div class="censorship-block">
+        <h3 class="censorship-rule-title">What we will remove, eventually, after warnings.</h3>
+        <p>Sustained, targeted personal cruelty — not a sharp argument, not an uncomfortable truth, but the kind of repetitive, personalised meanness whose purpose is to make someone feel unwelcome rather than to engage with their ideas — will result in warnings. Repeated and escalating behaviour after those warnings will result in removal. We set the bar here deliberately high and the warnings deliberately extensive, because we know this power can be abused and we intend to be slow and deliberate with it.</p>
+        <p>There is a real difference between an argument that stings and a campaign of harassment. We will not pretend otherwise, but we will be honest about how difficult that line is to draw and how carefully we intend to draw it.</p>
+      </div>
+    </section>
+
+    <section class="cta-row">
+      <div class="cta-copy">
+        <h3>Ready to contribute?</h3>
+        <p>Start a post and set the standard for rigorous discourse.</p>
+      </div>
+      <a class="cta-btn" href="submit.html">Start a Post</a>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <div class="footer-logo">The Agora</div>
+      <div class="footer-motto">"Strong opinions, loosely held." - Paul Saffo</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="debates.html">Debates</a></li>
+      <li><a href="#">Hall of Fame</a></li>
+      <li><a class="active" href="about.html">About</a></li>
+      <li><a href="rules.html">Rules</a></li>
+    </ul>
+    <div style="font-size:13px;">&copy; 2026 The Agora · Hawken Parkman</div>
+  </footer>
+</body>
+</html>
