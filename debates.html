@@ -200,7 +200,7 @@
       const navCta = document.getElementById('nav-cta');
       if (user) {
         const href = AgoraStore.profileUrl(user);
-        navCta.innerHTML = `<a class="nav-user" href="${href}">@${user}</a>
+        navCta.innerHTML = `<a class="nav-user" href="${href}">${user}</a>
           <button class="btn btn-outline" onclick="signOut()">Sign Out</button>`;
       } else {
         navCta.innerHTML = `<a class="btn btn-outline" href="${authUrl('signin', 'debates.html')}">Sign In</a>

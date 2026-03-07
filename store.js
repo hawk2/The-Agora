@@ -559,7 +559,7 @@
             ` : `<span style="color:#aaa;">${post.argcount || 0} ${post.argcount === 1 ? 'reply' : 'replies'}</span>`}
           </div>
           <div style="display:flex;align-items:center;gap:12px;">
-            <a href="${profileUrl(post.author || '')}" onclick="event.stopPropagation()" style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.05em;color:var(--navy);text-decoration:none;opacity:0.7;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">@${escHtml(post.author || 'unknown')}</a>
+            <a href="${profileUrl(post.author || '')}" onclick="event.stopPropagation()" style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.05em;color:var(--navy);text-decoration:none;opacity:0.7;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">${escHtml(post.author || 'unknown')}</a>
             <span style="color:#bbb;font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.05em;">${timeAgo(post.createdat)}</span>
           </div>
         </div>

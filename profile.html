@@ -300,7 +300,7 @@
       if (!navCta) return;
       if (loggedInUser) {
         const href = AgoraStore.profileUrl(loggedInUser);
-        navCta.innerHTML = `<a class="nav-user" href="${href}">@${loggedInUser}</a>
+        navCta.innerHTML = `<a class="nav-user" href="${href}">${loggedInUser}</a>
           <button class="btn btn-outline" onclick="signOut()">Sign Out</button>`;
       } else {
         const backTo = encodeURIComponent((location.pathname.split('/').pop() || 'profile.html') + location.search);
@@ -332,7 +332,7 @@
         avatarEl.insertBefore(document.createTextNode(username.charAt(0).toUpperCase()), overlayEl);
       }
 
-      if (isOwnProfile) {
+      if (isOwnProfile && editing) {
         avatarEl.classList.add('editable');
       } else {
         avatarEl.classList.remove('editable');
@@ -386,7 +386,7 @@
       if (editing) { cancelEdit(); return; }
       editing = true;
       setEditMode(true);
-      document.getElementById('edit-bio').focus();
+      renderAvatar(profile.username || viewedUser);
     }
 
     function cancelEdit() {
@@ -398,7 +398,7 @@
     // ── AVATAR UPLOAD ─────────────────────────────────────────────────────────
 
     function avatarClick() {
-      if (!isOwnProfile) return;
+      if (!isOwnProfile || !editing) return;
       document.getElementById('avatar-file-input').click();
     }
 

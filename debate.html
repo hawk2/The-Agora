@@ -833,7 +833,8 @@
       <input type="text" class="edit-input" id="edit-post-title" maxlength="220" />
       <label class="edit-field-label">Body</label>
       <textarea class="edit-textarea" id="edit-post-body" rows="5"></textarea>
-      <div style="display:flex;gap:12px;margin-top:18px;align-items:center;flex-wrap:wrap;">
+      <div id="edit-post-error" style="display:none;font-family:'Cinzel',serif;font-size:11px;color:var(--red);background:rgba(164,22,35,0.06);border:1px solid rgba(164,22,35,0.2);border-radius:3px;padding:9px 13px;margin-top:12px;"></div>
+      <div style="display:flex;gap:12px;margin-top:14px;align-items:center;flex-wrap:wrap;">
         <button class="modal-submit" id="edit-post-save" onclick="saveEditPost()" style="background:var(--navy);">Save Changes</button>
         <button onclick="closeEditPost()" style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:0.08em;padding:11px 18px;background:transparent;color:#aaa;border:1px solid #ddd;border-radius:2px;cursor:pointer;">Cancel</button>
       </div>
@@ -1155,7 +1156,8 @@
     // ── AUTH ──────────────────────────────────────────────────────────────────
 
     function openAuthModal(tab) {
-      location.href = authUrl(tab || 'signin', 'debate.html');
+      authSwitchTab(tab || 'signin');
+      document.getElementById('auth-modal').classList.add('open');
     }
 
     function closeAuthModal() {
@@ -1255,7 +1257,7 @@
       const navCta = document.getElementById('nav-cta');
       if (user) {
         const href = AgoraStore.profileUrl(user);
-        navCta.innerHTML = `<a class="nav-user" href="${href}">@${user}</a>
+        navCta.innerHTML = `<a class="nav-user" href="${href}">${user}</a>
           <button class="btn btn-outline" onclick="authSignOut()">Sign Out</button>`;
       } else {
         navCta.innerHTML = `<a class="btn btn-outline" href="${authUrl('signin', 'debate.html')}">Sign In</a>
@@ -1276,6 +1278,7 @@
       if (!currentPost) return;
       document.getElementById('edit-post-title').value = currentPost.title || '';
       document.getElementById('edit-post-body').value  = currentPost.body  || '';
+      document.getElementById('edit-post-error').style.display = 'none';
       document.getElementById('editPostModal').classList.add('open');
     }
 
@@ -1283,11 +1286,19 @@
       document.getElementById('editPostModal').classList.remove('open');
     }
 
+    function showEditPostError(msg) {
+      const el = document.getElementById('edit-post-error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
     async function saveEditPost() {
       const title = document.getElementById('edit-post-title').value.trim();
       const body  = document.getElementById('edit-post-body').value.trim();
-      if (!title) { showToast('Title cannot be empty.'); return; }
-      if (!body)  { showToast('Body cannot be empty.'); return; }
+      document.getElementById('edit-post-error').style.display = 'none';
+
+      if (!title) { showEditPostError('Title cannot be empty.'); return; }
+      if (!body)  { showEditPostError('Body cannot be empty.'); return; }
 
       const saveBtn = document.getElementById('edit-post-save');
       saveBtn.disabled = true;
@@ -1298,12 +1309,12 @@
       saveBtn.textContent = 'Save Changes';
 
       if (!updated) {
-        showToast((AgoraStore.getLastError && AgoraStore.getLastError()) || 'Could not save changes.');
+        const errMsg = (AgoraStore.getLastError && AgoraStore.getLastError()) || 'Could not save — check your connection.';
+        showEditPostError(errMsg);
         return;
       }
 
       currentPost = updated;
-      // Refresh the header display
       document.getElementById('post-title').textContent = updated.title;
       document.getElementById('post-body').innerHTML = AgoraStore.parseMarkdown(updated.body);
       document.title = 'The Agorium — ' + updated.title;

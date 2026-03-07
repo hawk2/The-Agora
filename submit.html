@@ -377,7 +377,7 @@
         const navCta = document.getElementById('nav-cta');
         if (navCta) {
           const href = AgoraStore.profileUrl(user);
-          navCta.innerHTML = `<a href="${href}" style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.08em;color:var(--blue);text-decoration:none;">@${user}</a>
+          navCta.innerHTML = `<a href="${href}" style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.08em;color:var(--blue);text-decoration:none;">${user}</a>
             <button class="btn btn-outline" onclick="signOutFromSubmit()">Sign Out</button>`;
         }
       }
