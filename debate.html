@@ -94,8 +94,19 @@
     .header-left { flex: 1; min-width: 0; }
     .breadcrumb { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
     .breadcrumb a { color: var(--blue); text-decoration: none; }
-    .debate-title { font-family: 'Cinzel', serif; font-size: clamp(16px, 2.2vw, 26px); font-weight: 700; color: var(--white); line-height: 1.25; margin-bottom: 6px; }
+    .debate-title-row { display: flex; align-items: flex-start; gap: 12px; }
+    .debate-title { font-family: 'Cinzel', serif; font-size: clamp(16px, 2.2vw, 26px); font-weight: 700; color: var(--white); line-height: 1.25; margin-bottom: 6px; flex: 1; }
+    .edit-post-btn { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; padding: 5px 13px; background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.55); border-radius: 2px; cursor: pointer; transition: all 0.18s; flex-shrink: 0; margin-top: 2px; display: none; }
+    .edit-post-btn:hover { border-color: var(--blue); color: var(--blue); }
     .debate-desc { font-size: 14px; color: rgba(255,255,255,0.5); font-style: italic; margin-bottom: 12px; }
+    /* edit post modal */
+    .edit-post-modal { border-top-color: var(--blue) !important; }
+    .edit-field-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--navy); display: block; margin-bottom: 6px; margin-top: 14px; }
+    .edit-field-label:first-child { margin-top: 0; }
+    .edit-input { width: 100%; font-family: 'EB Garamond', serif; font-size: 16px; padding: 9px 12px; border: 1px solid rgba(46,80,119,0.2); border-radius: 3px; outline: none; transition: border-color 0.2s; }
+    .edit-input:focus { border-color: var(--navy); }
+    .edit-textarea { width: 100%; font-family: 'EB Garamond', serif; font-size: 16px; padding: 9px 12px; border: 1px solid rgba(46,80,119,0.2); border-radius: 3px; resize: vertical; min-height: 100px; outline: none; transition: border-color 0.2s; }
+    .edit-textarea:focus { border-color: var(--navy); }
     .header-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
     .tag-chip { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 2px; background: rgba(113,169,247,0.15); color: var(--blue); }
 
@@ -573,7 +584,10 @@
     <div class="header-top">
       <div class="header-left">
         <div class="breadcrumb"><a href="debates.html">Debates</a> › <span id="post-type-label">Debate</span></div>
-        <h1 class="debate-title" id="post-title">Loading...</h1>
+        <div class="debate-title-row">
+          <h1 class="debate-title" id="post-title">Loading...</h1>
+          <button class="edit-post-btn" id="edit-post-btn" onclick="openEditPost()">✎ Edit Post</button>
+        </div>
         <p class="debate-desc" id="post-body"></p>
         <div class="header-tags" id="header-tags"></div>
       </div>
@@ -809,6 +823,23 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- EDIT POST MODAL -->
+  <div class="modal-overlay" id="editPostModal">
+    <div class="modal edit-post-modal" style="border-top-color:var(--blue);max-width:520px;">
+      <button class="modal-close" onclick="closeEditPost()">✕</button>
+      <h2 style="color:var(--navy);">✎ Edit Post</h2>
+      <p>Update your thesis or body text.</p>
+      <label class="edit-field-label">Title / Thesis</label>
+      <input type="text" class="edit-input" id="edit-post-title" maxlength="220" />
+      <label class="edit-field-label">Body</label>
+      <textarea class="edit-textarea" id="edit-post-body" rows="5"></textarea>
+      <div style="display:flex;gap:12px;margin-top:18px;align-items:center;flex-wrap:wrap;">
+        <button class="modal-submit" id="edit-post-save" onclick="saveEditPost()" style="background:var(--navy);">Save Changes</button>
+        <button onclick="closeEditPost()" style="font-family:'Cinzel',serif;font-size:12px;letter-spacing:0.08em;padding:11px 18px;background:transparent;color:#aaa;border:1px solid #ddd;border-radius:2px;cursor:pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store.js"></script>
   <script>
@@ -836,6 +867,14 @@
       if (currentPost.tags && currentPost.tags.length) {
         document.getElementById('header-tags').innerHTML =
           currentPost.tags.map(t => `<span class="tag-chip">${AgoraStore.escHtml(t)}</span>`).join('');
+      }
+
+      // Show edit button only to the post's author
+      const loggedInUser = localStorage.getItem('agora_user');
+      const editBtn = document.getElementById('edit-post-btn');
+      if (editBtn && loggedInUser && currentPost.author &&
+          loggedInUser.toLowerCase() === currentPost.author.toLowerCase()) {
+        editBtn.style.display = 'inline-block';
       }
 
       await updateStats();
@@ -1006,7 +1045,7 @@
       if (!currentPost) return;
       const user = localStorage.getItem('agora_user') || await AgoraStore.syncAuthUser();
       if (!user) {
-        location.href = authUrl('signin', 'debate.html');
+        openAuthModal('signin');
         return;
       }
       const ta   = document.getElementById('post-textarea');
@@ -1230,6 +1269,52 @@
     document.getElementById('auth-signup-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('auth-signup-email').focus(); });
     document.getElementById('auth-signup-email').addEventListener('keydown',    e => { if (e.key === 'Enter') document.getElementById('auth-signup-password').focus(); });
     document.getElementById('auth-signup-password').addEventListener('keydown', e => { if (e.key === 'Enter') authDoSignUp(); });
+
+    // ── EDIT POST ──────────────────────────────────────────────────────────────
+
+    function openEditPost() {
+      if (!currentPost) return;
+      document.getElementById('edit-post-title').value = currentPost.title || '';
+      document.getElementById('edit-post-body').value  = currentPost.body  || '';
+      document.getElementById('editPostModal').classList.add('open');
+    }
+
+    function closeEditPost() {
+      document.getElementById('editPostModal').classList.remove('open');
+    }
+
+    async function saveEditPost() {
+      const title = document.getElementById('edit-post-title').value.trim();
+      const body  = document.getElementById('edit-post-body').value.trim();
+      if (!title) { showToast('Title cannot be empty.'); return; }
+      if (!body)  { showToast('Body cannot be empty.'); return; }
+
+      const saveBtn = document.getElementById('edit-post-save');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+
+      const updated = await AgoraStore.updatePost(currentPost.id, { title, body });
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Changes';
+
+      if (!updated) {
+        showToast((AgoraStore.getLastError && AgoraStore.getLastError()) || 'Could not save changes.');
+        return;
+      }
+
+      currentPost = updated;
+      // Refresh the header display
+      document.getElementById('post-title').textContent = updated.title;
+      document.getElementById('post-body').innerHTML = AgoraStore.parseMarkdown(updated.body);
+      document.title = 'The Agorium — ' + updated.title;
+
+      closeEditPost();
+      showToast('Post updated ✦');
+    }
+
+    document.getElementById('editPostModal').addEventListener('click', function(e) {
+      if (e.target === this) closeEditPost();
+    });
 
     async function initPage() {
       await AgoraStore.syncAuthUser();

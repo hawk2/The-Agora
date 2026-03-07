@@ -73,6 +73,7 @@
       goals: 400,
       belief: 400,
       hobbies: 160,
+      avatar_url: 200000,  // supports base64-encoded images up to ~150KB
     };
     const out = {};
     Object.keys(maxByField).forEach((k) => {
@@ -338,6 +339,34 @@
     const { data, error } = await db.from('posts').select('*').eq('type', type).order('createdat', { ascending: false });
     if (error) return [];
     return data || [];
+  }
+
+  async function updatePost(postId, { title, body, tags }) {
+    setLastError('', null);
+    const updates = {};
+    if (title !== undefined) updates.title = String(title).trim().slice(0, 220);
+    if (body  !== undefined) updates.body  = String(body).trim();
+    if (tags  !== undefined) updates.tags  = tags;
+
+    const { data, error } = await db
+      .from('posts')
+      .update(updates)
+      .eq('id', postId)
+      .select('*')
+      .single();
+    if (error) {
+      setLastError('updatePost failed', error);
+      console.error('updatePost:', error);
+      return null;
+    }
+
+    // Upsert any new tags
+    if (tags && tags.length) {
+      const rows = tags.map(t => ({ tag: String(t).toLowerCase() }));
+      await db.from('tags').upsert(rows, { onConflict: 'tag', ignoreDuplicates: true });
+    }
+
+    return data;
   }
 
   // ── ARGUMENTS ──
@@ -625,7 +654,7 @@
   // ── PUBLIC API ──
   window.AgoraStore = {
     signUpAccount, signInAccount, signOutAccount, syncAuthUser,
-    createPost, getPost, getAllPosts, getPostsByType,
+    createPost, getPost, getAllPosts, getPostsByType, updatePost,
     setCurrentPost, getCurrentPost,
     createArgument, getArguments,
     vote, getVotes, getVotesBatch,

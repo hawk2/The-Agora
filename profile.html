@@ -53,7 +53,23 @@
       font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; color: white;
       flex-shrink: 0;
       border: 3px solid rgba(255,255,255,0.15);
+      overflow: hidden;
+      position: relative;
     }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .avatar-edit-overlay {
+      display: none;
+      position: absolute; inset: 0; border-radius: 50%;
+      background: rgba(0,0,0,0.55);
+      align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: white;
+      transition: background 0.18s;
+    }
+    .avatar-edit-overlay:hover { background: rgba(0,0,0,0.72); }
+    .avatar.editable:hover .avatar-edit-overlay { display: flex; }
+    .avatar.editable { cursor: pointer; }
     .profile-hero-text { flex: 1; }
     .profile-username { font-family: 'Cinzel', serif; font-size: clamp(22px, 3vw, 34px); font-weight: 700; color: white; margin-bottom: 4px; }
     .profile-tagline { font-size: 16px; color: rgba(255,255,255,0.55); font-style: italic; min-height: 24px; }
@@ -149,7 +165,10 @@
   <!-- HERO -->
   <div class="profile-hero">
     <div class="profile-hero-inner">
-      <div class="avatar" id="avatar">?</div>
+      <div class="avatar" id="avatar" onclick="avatarClick()">
+        <div class="avatar-edit-overlay" id="avatar-edit-overlay">📷</div>
+      </div>
+      <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarFile(event)" />
       <div class="profile-hero-text">
         <div class="profile-username" id="display-username">—</div>
         <div class="profile-tagline" id="display-tagline"></div>
@@ -162,15 +181,6 @@
   <!-- BODY -->
   <div class="profile-body">
     <div class="fields-grid" id="fields-grid">
-
-      <div class="field-card full-width">
-        <div class="field-key" style="justify-content:space-between;">
-          <span><span class="field-key-icon">📝</span> Public Bio</span>
-          <button id="clear-bio-btn" onclick="clearBio()" style="display:none; font-family:'Cinzel',serif; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; background:none; border:none; color:#bbb; cursor:pointer; padding:0; transition:color 0.15s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='#bbb'">Clear Bio</button>
-        </div>
-        <div class="field-value" id="view-bio"></div>
-        <textarea class="field-textarea" id="edit-bio" placeholder="Write a short public bio others can read on your profile." maxlength="1200" style="display:none;"></textarea>
-      </div>
 
       <div class="field-card">
         <div class="field-key"><span class="field-key-icon">💬</span> Tagline</div>
@@ -300,11 +310,40 @@
       }
     }
 
+    function renderAvatar(username) {
+      const avatarEl = document.getElementById('avatar');
+      const overlayEl = document.getElementById('avatar-edit-overlay');
+      // Remove old img if any
+      const oldImg = avatarEl.querySelector('img');
+      if (oldImg) oldImg.remove();
+      // Remove old text node
+      [...avatarEl.childNodes].forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
+
+      if (profile.avatar_url) {
+        const img = document.createElement('img');
+        img.src = profile.avatar_url;
+        img.alt = username;
+        img.onerror = function() {
+          this.remove();
+          avatarEl.insertBefore(document.createTextNode(username.charAt(0).toUpperCase()), overlayEl);
+        };
+        avatarEl.insertBefore(img, overlayEl);
+      } else {
+        avatarEl.insertBefore(document.createTextNode(username.charAt(0).toUpperCase()), overlayEl);
+      }
+
+      if (isOwnProfile) {
+        avatarEl.classList.add('editable');
+      } else {
+        avatarEl.classList.remove('editable');
+      }
+    }
+
     function renderProfile() {
       const username = profile.username || viewedUser;
 
-      document.getElementById('avatar').textContent = username.charAt(0).toUpperCase();
-      document.getElementById('display-username').textContent = '@' + username;
+      renderAvatar(username);
+      document.getElementById('display-username').textContent = username;
 
       const taglineEl = document.getElementById('display-tagline');
       taglineEl.textContent = profile.tagline || '';
@@ -356,6 +395,49 @@
       setEditMode(false);
     }
 
+    // ── AVATAR UPLOAD ─────────────────────────────────────────────────────────
+
+    function avatarClick() {
+      if (!isOwnProfile) return;
+      document.getElementById('avatar-file-input').click();
+    }
+
+    function handleAvatarFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { showToast('Please select an image file.'); return; }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // Resize to 160x160 using a canvas
+          const SIZE = 160;
+          const canvas = document.createElement('canvas');
+          canvas.width  = SIZE;
+          canvas.height = SIZE;
+          const ctx = canvas.getContext('2d');
+
+          // Crop to square from center
+          const minSide = Math.min(img.width, img.height);
+          const sx = (img.width  - minSide) / 2;
+          const sy = (img.height - minSide) / 2;
+          ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, SIZE, SIZE);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          profile.avatar_url = dataUrl;
+          renderAvatar(profile.username || viewedUser);
+          showToast('Profile picture updated — save to apply ✦');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      // Reset input so same file can be re-selected
+      event.target.value = '';
+    }
+
+    // ── SAVE PROFILE ──────────────────────────────────────────────────────────
+
     async function saveProfile() {
       if (!isOwnProfile || !loggedInUser) return;
       const fields = {
@@ -365,6 +447,7 @@
         goals:      document.getElementById('edit-goals').value.trim(),
         belief:     document.getElementById('edit-belief').value.trim(),
         hobbies:    document.getElementById('edit-hobbies').value.trim(),
+        avatar_url: profile.avatar_url || '',
       };
 
       const editBtn = document.getElementById('edit-btn');
