@@ -1,4 +1,8 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "echo \"Static deploy: no install step\"",
+  "buildCommand": "echo \"Static deploy: no build step\"",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/bot_ui/templates/panel/dashboard.html",
