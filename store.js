@@ -341,6 +341,75 @@
     return data || [];
   }
 
+  async function getRecentDebates(limit) {
+    setLastError('', null);
+    const n = Number(limit || 100);
+    const safeLimit = Number.isFinite(n) ? Math.max(1, Math.min(500, Math.floor(n))) : 100;
+    const { data, error } = await db
+      .from('posts')
+      .select('*')
+      .eq('type', 'debate')
+      .order('createdat', { ascending: false })
+      .limit(safeLimit);
+    if (error) {
+      setLastError('getRecentDebates failed', error);
+      console.error('getRecentDebates:', error.message);
+      return [];
+    }
+    return data || [];
+  }
+
+  async function isBotUiAdmin() {
+    setLastError('', null);
+    const { data, error } = await db.rpc('is_bot_ui_admin');
+    if (error) {
+      setLastError('isBotUiAdmin failed', error);
+      console.error('isBotUiAdmin:', error.message);
+      return false;
+    }
+    return !!data;
+  }
+
+  async function enqueueBotUiAction({ persona, action, debateId, forcedSide }) {
+    setLastError('', null);
+    const payload = {
+      persona: String(persona || '').trim(),
+      action: String(action || '').trim().toLowerCase(),
+      debate_id: debateId || null,
+      forced_side: forcedSide || null,
+    };
+
+    const { data, error } = await db
+      .from('bot_ui_actions')
+      .insert([payload])
+      .select('*')
+      .single();
+
+    if (error) {
+      setLastError('enqueueBotUiAction failed', error);
+      console.error('enqueueBotUiAction:', error.message);
+      return null;
+    }
+    return data;
+  }
+
+  async function getBotUiActions(limit) {
+    setLastError('', null);
+    const n = Number(limit || 40);
+    const safeLimit = Number.isFinite(n) ? Math.max(1, Math.min(500, Math.floor(n))) : 40;
+    const { data, error } = await db
+      .from('bot_ui_actions')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(safeLimit);
+    if (error) {
+      setLastError('getBotUiActions failed', error);
+      console.error('getBotUiActions:', error.message);
+      return [];
+    }
+    return data || [];
+  }
+
   async function updatePost(postId, { title, body, tags }) {
     setLastError('', null);
     const updates = {};
@@ -655,11 +724,13 @@
   window.AgoraStore = {
     signUpAccount, signInAccount, signOutAccount, syncAuthUser,
     createPost, getPost, getAllPosts, getPostsByType, updatePost,
+    getRecentDebates,
     setCurrentPost, getCurrentPost,
     createArgument, getArguments,
     vote, getVotes, getVotesBatch,
     toggleSteelman,
     declareMindChange,
+    isBotUiAdmin, enqueueBotUiAction, getBotUiActions,
     getAllTags,
     ensureUserProfile, getUserProfile, updateUserProfile, profileUrl,
     getLastError: () => lastError,

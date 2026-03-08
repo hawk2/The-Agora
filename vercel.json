@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/bot_ui/templates/panel/dashboard.html",
+      "destination": "/agoribotui.html"
+    },
+    {
+      "source": "/agoribotui",
+      "destination": "/agoribotui.html"
+    }
+  ]
+}

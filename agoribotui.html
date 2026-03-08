@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agorium Bot Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f3ed;
+      --paper: #ffffff;
+      --ink: #1f2a37;
+      --muted: #667085;
+      --line: #d6dbe4;
+      --accent: #1f5d3d;
+      --accent-2: #2e5077;
+      --warn: #9a3412;
+      --err: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      background:
+        radial-gradient(circle at 5% -10%, #fff7db 0%, transparent 35%),
+        radial-gradient(circle at 90% -20%, #e6eef8 0%, transparent 40%),
+        var(--bg);
+    }
+    .wrap {
+      max-width: 1040px;
+      margin: 28px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 12px 32px rgba(31, 42, 55, 0.08);
+      margin-bottom: 16px;
+    }
+    h1, h2 {
+      margin: 0;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.02em;
+    }
+    h1 { font-size: 28px; }
+    h2 { font-size: 20px; margin-bottom: 12px; }
+    .sub { margin: 8px 0 0; color: var(--muted); }
+    .topbar {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .topbar strong { color: var(--ink); }
+    .btn {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 15px;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+    .btn.secondary { background: #374151; }
+    .btn.alt { background: var(--accent-2); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .field label {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+    }
+    input[type="email"],
+    input[type="password"],
+    select {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: inherit;
+      font-size: 15px;
+      background: #fff;
+    }
+    .radio-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-top: 2px;
+    }
+    .radio-row label {
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .msg {
+      border-radius: 8px;
+      border: 1px solid;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .msg.success { background: #ecfdf3; border-color: #7dd3a8; color: #065f46; }
+    .msg.error { background: #fef2f2; border-color: #fca5a5; color: var(--err); }
+    .msg.warning { background: #fff7ed; border-color: #fdba74; color: var(--warn); }
+    .table-wrap {
+      max-height: 300px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f8fafc; position: sticky; top: 0; }
+    tr:last-child td { border-bottom: 0; }
+    .mono { font-family: Menlo, Monaco, monospace; font-size: 12px; color: var(--muted); }
+    .hidden { display: none !important; }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Agorium Bot Control</h1>
+      <p class="sub">Choose persona, action, debate target, and side override from one panel.</p>
+      <div class="topbar">
+        <span id="signed-in-text">Not signed in.</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="index.html" class="btn alt" style="text-decoration:none;display:inline-block;">Home</a>
+          <button id="signout-btn" type="button" class="btn secondary hidden">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="login-card" class="card">
+      <h2>Login</h2>
+      <p class="sub" style="margin-bottom:12px;">Sign in with your Supabase Auth account.</p>
+      <form id="login-form">
+        <div class="grid">
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+          </div>
+        </div>
+        <button class="btn" type="submit">Sign In</button>
+      </form>
+    </div>
+
+    <div id="not-admin-card" class="card hidden">
+      <h2>Not Authorized</h2>
+      <p class="sub">This account is signed in, but it is not in <span class="mono">public.bot_ui_admins</span>.</p>
+    </div>
+
+    <div id="panel-card" class="card hidden">
+      <form id="bot-form">
+        <div class="field">
+          <label>Action</label>
+          <div class="radio-row">
+            <label><input type="radio" name="action" value="argue" checked> Argue in debate</label>
+            <label><input type="radio" name="action" value="new"> Start new debate</label>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="persona">Persona</label>
+            <select id="persona" name="persona" required></select>
+          </div>
+          <div class="field" id="side-wrap">
+            <label for="side">Side (Argue only)</label>
+            <select id="side" name="side">
+              <option value="auto">Auto</option>
+              <option value="for">For</option>
+              <option value="against">Against</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" id="debate-wrap">
+          <label for="debate_id">Target Debate (Argue only)</label>
+          <select id="debate_id" name="debate_id" required>
+            <option value="">Select a debate</option>
+          </select>
+        </div>
+
+        <button class="btn" id="run-btn" type="submit">Queue Bot Action</button>
+      </form>
+    </div>
+
+    <div id="debates-card" class="card hidden">
+      <h2>Recent Debates</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Title</th><th>Author</th><th>ID</th></tr>
+          </thead>
+          <tbody id="debates-body">
+            <tr><td colspan="3">No debates loaded.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="actions-card" class="card hidden">
+      <h2>Recent Bot Actions</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Persona</th><th>Action</th><th>Status</th><th>Created</th></tr>
+          </thead>
+          <tbody id="actions-body">
+            <tr><td colspan="5">No actions queued.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="store.js"></script>
+  <script>
+    const PERSONAS = {
+      RighteousPaul: {
+        display_name: "RighteousPaul",
+        bio: "Christian conservative. Faith, family, and freedom.",
+      },
+      AtheaReason: {
+        display_name: "AtheaReason",
+        bio: "Secular humanist. Evidence over ideology.",
+      },
+      VibezOfChaos: {
+        display_name: "VibezOfChaos",
+        bio: "Philosopher-gremlin. Questions everything including this bio.",
+      },
+    };
+
+    const messagesEl = document.getElementById('messages');
+    const signedInTextEl = document.getElementById('signed-in-text');
+    const signOutBtn = document.getElementById('signout-btn');
+    const loginCard = document.getElementById('login-card');
+    const notAdminCard = document.getElementById('not-admin-card');
+    const panelCard = document.getElementById('panel-card');
+    const debatesCard = document.getElementById('debates-card');
+    const actionsCard = document.getElementById('actions-card');
+
+    const personaSelect = document.getElementById('persona');
+    const debateSelect = document.getElementById('debate_id');
+    const debatesBody = document.getElementById('debates-body');
+    const actionsBody = document.getElementById('actions-body');
+
+    const botForm = document.getElementById('bot-form');
+    const loginForm = document.getElementById('login-form');
+    const runBtn = document.getElementById('run-btn');
+
+    function flash(type, text) {
+      const div = document.createElement('div');
+      div.className = `msg ${type}`;
+      div.textContent = text;
+      messagesEl.prepend(div);
+      setTimeout(() => {
+        if (div.parentNode) div.parentNode.removeChild(div);
+      }, 7000);
+    }
+
+    function clearMessages() {
+      messagesEl.innerHTML = '';
+    }
+
+    function timeAgo(iso) {
+      const ts = new Date(iso).getTime();
+      if (!Number.isFinite(ts)) return 'unknown';
+      const s = Math.floor((Date.now() - ts) / 1000);
+      if (s < 60) return 'just now';
+      if (s < 3600) return Math.floor(s / 60) + 'm ago';
+      if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+      return Math.floor(s / 86400) + 'd ago';
+    }
+
+    function escHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function toggleArgueFields() {
+      const action = document.querySelector('input[name="action"]:checked')?.value || 'argue';
+      const show = action === 'argue';
+      document.getElementById('debate-wrap').classList.toggle('hidden', !show);
+      document.getElementById('side-wrap').classList.toggle('hidden', !show);
+      debateSelect.required = show;
+    }
+
+    function setAuthUi({ signedIn, username, authorized }) {
+      signedInTextEl.textContent = signedIn ? `Signed in as ${username || 'unknown'}` : 'Not signed in.';
+      signOutBtn.classList.toggle('hidden', !signedIn);
+
+      loginCard.classList.toggle('hidden', signedIn);
+      notAdminCard.classList.toggle('hidden', !signedIn || authorized);
+      panelCard.classList.toggle('hidden', !signedIn || !authorized);
+      debatesCard.classList.toggle('hidden', !signedIn || !authorized);
+      actionsCard.classList.toggle('hidden', !signedIn || !authorized);
+    }
+
+    function populatePersonas() {
+      personaSelect.innerHTML = Object.entries(PERSONAS).map(([key, p]) => {
+        return `<option value="${key}">${escHtml(p.display_name)} — ${escHtml(p.bio)}</option>`;
+      }).join('');
+    }
+
+    function renderDebates(debates) {
+      if (!debates.length) {
+        debatesBody.innerHTML = '<tr><td colspan="3">No debates loaded.</td></tr>';
+        debateSelect.innerHTML = '<option value="">Select a debate</option>';
+        return;
+      }
+
+      debateSelect.innerHTML = '<option value="">Select a debate</option>' + debates.map((d) => {
+        const title = d.title || d.id;
+        const author = d.author || 'unknown';
+        return `<option value="${escHtml(d.id)}">${escHtml(title)} — by ${escHtml(author)}</option>`;
+      }).join('');
+
+      debatesBody.innerHTML = debates.map((d) => {
+        return `<tr>
+          <td>${escHtml(d.title || '(untitled)')}</td>
+          <td>${escHtml(d.author || 'unknown')}</td>
+          <td class="mono">${escHtml(d.id)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderActions(actions) {
+      if (!actions.length) {
+        actionsBody.innerHTML = '<tr><td colspan="5">No actions queued.</td></tr>';
+        return;
+      }
+      actionsBody.innerHTML = actions.map((a) => {
+        return `<tr>
+          <td class="mono">${escHtml(a.id)}</td>
+          <td>${escHtml(a.persona || '')}</td>
+          <td>${escHtml(a.action || '')}</td>
+          <td>${escHtml(a.status || '')}</td>
+          <td>${escHtml(timeAgo(a.created_at))}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function loadDebates() {
+      const debates = await AgoraStore.getRecentDebates(100);
+      renderDebates(debates || []);
+      if (!debates.length) {
+        const err = AgoraStore.getLastError();
+        if (err) flash('warning', 'Could not load debates: ' + err);
+      }
+    }
+
+    async function loadActions() {
+      const actions = await AgoraStore.getBotUiActions(40);
+      renderActions(actions || []);
+      if (!actions.length) {
+        const err = AgoraStore.getLastError();
+        if (err && /bot_ui_actions/i.test(err)) {
+          flash('warning', 'Could not load bot actions: ' + err);
+        }
+      }
+    }
+
+    async function refreshUi() {
+      clearMessages();
+      populatePersonas();
+      toggleArgueFields();
+
+      const username = await AgoraStore.syncAuthUser();
+      if (!username) {
+        setAuthUi({ signedIn: false, username: '', authorized: false });
+        return;
+      }
+
+      const admin = await AgoraStore.isBotUiAdmin();
+      setAuthUi({ signedIn: true, username, authorized: admin });
+
+      if (!admin) {
+        const err = AgoraStore.getLastError();
+        if (err) flash('warning', err);
+        return;
+      }
+
+      await loadDebates();
+      await loadActions();
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const out = await AgoraStore.signInAccount({ email, password });
+      if (!out.ok) {
+        flash('error', out.error || 'Login failed.');
+        return;
+      }
+      flash('success', 'Signed in.');
+      await refreshUi();
+    });
+
+    signOutBtn.addEventListener('click', async () => {
+      clearMessages();
+      await AgoraStore.signOutAccount();
+      flash('success', 'Signed out.');
+      await refreshUi();
+    });
+
+    document.querySelectorAll('input[name="action"]').forEach((el) => {
+      el.addEventListener('change', toggleArgueFields);
+    });
+
+    botForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMessages();
+
+      const persona = (personaSelect.value || '').trim();
+      const action = (document.querySelector('input[name="action"]:checked')?.value || 'argue').trim();
+      const debateId = (debateSelect.value || '').trim();
+      const sideInput = (document.getElementById('side').value || 'auto').trim().toLowerCase();
+      const forcedSide = sideInput === 'for' || sideInput === 'against' ? sideInput : null;
+
+      if (!persona || !PERSONAS[persona]) {
+        flash('error', 'Invalid persona selected.');
+        return;
+      }
+      if (action === 'argue' && !debateId) {
+        flash('error', 'Pick a debate to argue on.');
+        return;
+      }
+
+      runBtn.disabled = true;
+      const result = await AgoraStore.enqueueBotUiAction({
+        persona,
+        action,
+        debateId: action === 'argue' ? debateId : null,
+        forcedSide: action === 'argue' ? forcedSide : null,
+      });
+      runBtn.disabled = false;
+
+      if (!result) {
+        flash('error', AgoraStore.getLastError() || 'Could not queue bot action.');
+        return;
+      }
+
+      flash('success', `Queued action #${result.id} (${result.persona} / ${result.action}).`);
+      await loadActions();
+    });
+
+    refreshUi();
+  </script>
+</body>
+</html>
