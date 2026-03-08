@@ -326,11 +326,25 @@
 
     // ── MOST DEBATED ──────────────────────────────────────────────────────────
 
-    function renderMostDebated(posts) {
+    function renderMostDebated(posts, args) {
       const el = document.getElementById('grid-debated');
-      const top = [...posts].sort((a, b) => (b.argcount || 0) - (a.argcount || 0)).slice(0, 6);
+      const argCounts = {};
+      (args || []).forEach(a => {
+        const postId = String(a.postid || '');
+        if (!postId) return;
+        argCounts[postId] = (argCounts[postId] || 0) + 1;
+      });
 
-      if (!top.length || top[0].argcount === 0) {
+      const withCounts = [...posts].map(p => ({
+        ...p,
+        hallArgCount: argCounts[p.id] ?? (p.argcount || 0),
+      }));
+
+      const top = withCounts
+        .sort((a, b) => (b.hallArgCount || 0) - (a.hallArgCount || 0))
+        .slice(0, 6);
+
+      if (!top.length || top[0].hallArgCount === 0) {
         el.innerHTML = emptyHtml('No debates have arguments yet.');
         return;
       }
@@ -347,7 +361,7 @@
             <div class="hof-card-body">${AgoraStore.escHtml(body)}${(p.body || '').length > 100 ? '…' : ''}</div>
             <div class="hof-card-footer">
               <a class="hof-card-author" href="${AgoraStore.profileUrl(p.author || '')}" onclick="event.stopPropagation()">${AgoraStore.escHtml(p.author || 'unknown')}</a>
-              <span class="hof-big-stat args">${p.argcount || 0} arguments</span>
+              <span class="hof-big-stat args">${p.hallArgCount || 0} arguments</span>
             </div>
           </div>`;
       }).join('');
@@ -446,7 +460,7 @@
 
       renderMindChangers(posts);
       renderMostUpvoted(args, votes, posts);
-      renderMostDebated(posts);
+      renderMostDebated(posts, args);
     }
 
     initPage();

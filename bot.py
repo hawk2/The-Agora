@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Agorium Bot — Posts debate content every 4 hours as Athena.
+Agorium Bot — Posts debate content every 4 hours as alternating personas.
 Always argues on the most recent debate post.
 """
 
 import os
-import random
+import re
 import sys
 from datetime import datetime, timezone
 from typing import Optional
@@ -31,7 +31,25 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
 OPENAI_KEY   = os.environ.get("OPENAI_API_KEY", "")
 
 MODEL = "gpt-5-mini-2025-08-07"
-SIDES = ["for", "against"]
+PAUL_NAME = "RighteousPaul"
+VALID_SIDES = {"for", "against"}
+ATHENA_MAX_STYLE_RETRIES = 3
+PREDICT_SIDE_MAX_ATTEMPTS = 3
+SIDE_CLASSIFY_MAX_ATTEMPTS = 3
+SWITCH_DECISION_MAX_ATTEMPTS = 3
+PAUL_STYLE_PATTERNS = [
+    r"\bscripture\b",
+    r"\bbible\b",
+    r"\bgod\b",
+    r"\bjesus\b",
+    r"\bchristian\b",
+    r"\bfaith\b",
+    r"\bfounding fathers\b",
+    r"\bfounders\b",
+    r"\bnatural law\b",
+    r"\bacts\s+\d+:\d+\b",
+    r"\bproverbs\s+\d+:\d+\b",
+]
 
 PERSONAS = [
     {
@@ -92,7 +110,10 @@ PERSONAS = [
     },
 ]
 
-PERSONA = next((p for p in PERSONAS if p["display_name"] == "Athena"), PERSONAS[0])
+PERSONA_ORDER = [p["display_name"] for p in PERSONAS]
+PERSONA_BY_NAME = {p["display_name"]: p for p in PERSONAS}
+PERSONA = PERSONAS[0]
+PAUL_PERSONA = PERSONA_BY_NAME.get(PAUL_NAME, PERSONAS[0])
 
 
 # ── Supabase helpers ──────────────────────────────────────────────────────────
@@ -118,6 +139,47 @@ def ensure_persona_user(sb: Client) -> None:
         print(f"  Created user: {name}")
     except Exception as e:
         print(f"  Could not ensure user {name}: {e}")
+
+
+def get_last_bot_persona(sb: Client) -> Optional[str]:
+    try:
+        res = (
+            sb.table("arguments")
+            .select("author")
+            .in_("author", PERSONA_ORDER)
+            .order("createdat", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            return str(res.data[0].get("author", "")).strip() or None
+    except Exception as e:
+        print(f"  Could not fetch last bot argument author: {e}")
+
+    try:
+        res = (
+            sb.table("posts")
+            .select("author")
+            .in_("author", PERSONA_ORDER)
+            .order("createdat", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            return str(res.data[0].get("author", "")).strip() or None
+    except Exception as e:
+        print(f"  Could not fetch last bot post author: {e}")
+
+    return None
+
+
+def choose_alternating_persona(sb: Client) -> dict:
+    last_persona = get_last_bot_persona(sb)
+    if not last_persona or last_persona not in PERSONA_BY_NAME:
+        return PERSONAS[0]
+    idx = PERSONA_ORDER.index(last_persona)
+    next_idx = (idx + 1) % len(PERSONAS)
+    return PERSONAS[next_idx]
 
 
 def get_recent_posts(sb: Client, limit: int = 10) -> list[dict]:
@@ -149,6 +211,332 @@ def get_most_recent_debate(sb: Client) -> Optional[dict]:
         return None
 
 
+# ── Side resolution helpers ───────────────────────────────────────────────────
+
+def normalize_side(value) -> Optional[str]:
+    side = str(value or "").strip().lower()
+    if side in VALID_SIDES:
+        return side
+    return None
+
+
+def opposite_side(side: str) -> str:
+    return "against" if side == "for" else "for"
+
+
+def is_paul_author(value) -> bool:
+    return str(value or "").strip().lower() == PAUL_NAME.lower()
+
+
+def get_latest_paul_argument(sb: Client, post_id: str) -> Optional[dict]:
+    try:
+        res = (
+            sb.table("arguments")
+            .select("*")
+            .eq("postid", post_id)
+            .eq("author", PAUL_NAME)
+            .order("createdat", desc=True)
+            .limit(1)
+            .execute()
+        )
+        return (res.data or [None])[0]
+    except Exception as e:
+        print(f"  Could not fetch latest {PAUL_NAME} argument: {e}")
+        return None
+
+
+def parse_side_choice(text: str) -> Optional[str]:
+    raw = str(text or "").strip().lower()
+    if not raw:
+        return None
+
+    exact = re.match(r'^\s*["\']?(for|against)["\']?\s*[\.\!\,\;\:]?\s*$', raw)
+    if exact:
+        return exact.group(1)
+
+    json_like = re.search(r'"side"\s*:\s*"(for|against)"', raw)
+    if json_like:
+        return json_like.group(1)
+
+    first_token = re.search(r"\b(for|against)\b", raw)
+    if first_token:
+        return first_token.group(1)
+    return None
+
+
+def deterministic_side_from_key(key: str) -> str:
+    checksum = sum(ord(ch) for ch in str(key))
+    return "for" if checksum % 2 == 0 else "against"
+
+
+def predict_paul_side(post: dict) -> tuple[str, str]:
+    client = OpenAIClient(api_key=OPENAI_KEY)
+    post_id = str(post.get("id", "")).strip()
+    title = post.get("title", "")
+    body = post.get("body", "")
+    fallback_key = f"{PAUL_NAME}|{post_id or title}"
+
+    prompt_variants = [
+        {
+            "role": "system",
+            "content": PAUL_PERSONA["prompt_style"],
+        },
+        {
+            "role": "system",
+            "content": (
+                "You are classifying likely stance for RighteousPaul. "
+                "Respond with one token only: for or against."
+            ),
+        },
+    ]
+
+    votes: list[str] = []
+    for system_prompt in prompt_variants:
+        for _ in range(PREDICT_SIDE_MAX_ATTEMPTS):
+            msg = client.chat.completions.create(
+                model=MODEL,
+                max_completion_tokens=32,
+                messages=[
+                    system_prompt,
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Debate title: {title}\n\nDebate body: {body}\n\n"
+                            "Which side would RighteousPaul most likely take? "
+                            "Return exactly one token: for or against."
+                        ),
+                    },
+                ],
+            )
+            raw = extract_text(msg)
+            parsed = parse_side_choice(raw)
+            if parsed:
+                votes.append(parsed)
+                continue
+            print(f"  [debug] Could not parse predicted Paul side from: {raw!r}")
+
+    if votes and all(vote == votes[0] for vote in votes):
+        return votes[0], "anti-paul-predicted"
+
+    fallback_side = deterministic_side_from_key(fallback_key)
+    print(f"  [debug] Using hash fallback for predicted Paul side: {fallback_side} (votes={votes})")
+    return fallback_side, "anti-paul-predicted-hash"
+
+
+def resolve_athena_initial_side(sb: Client, post: dict) -> tuple[Optional[str], Optional[str], bool, str]:
+    post_id = str(post.get("id", ""))
+    if not post_id:
+        return None, None, False, "missing-post-id"
+
+    paul_arg = get_latest_paul_argument(sb, post_id)
+    if paul_arg:
+        paul_side = normalize_side(paul_arg.get("side"))
+        if paul_side:
+            paul_body = str(paul_arg.get("body", "")).strip()
+            return opposite_side(paul_side), paul_body, True, "anti-paul-latest-argument"
+        print(f"  [debug] {PAUL_NAME} has an argument with invalid side; falling back to prediction.")
+
+    if is_paul_author(post.get("author")):
+        return "against", None, False, "anti-paul-authored-debate"
+
+    predicted_side, predicted_source = predict_paul_side(post)
+    return opposite_side(predicted_side), None, False, predicted_source
+
+
+def get_last_persona_argument(sb: Client, post_id: str) -> Optional[dict]:
+    try:
+        res = (
+            sb.table("arguments")
+            .select("*")
+            .eq("postid", post_id)
+            .eq("author", PERSONA["display_name"])
+            .order("createdat", desc=True)
+            .limit(1)
+            .execute()
+        )
+        return (res.data or [None])[0]
+    except Exception as e:
+        print(f"  Could not fetch last argument for {PERSONA['display_name']}: {e}")
+        return None
+
+
+def get_recent_opposing_arguments(
+    sb: Client,
+    post_id: str,
+    current_side: str,
+    created_after: Optional[str],
+    limit: int = 3,
+) -> list[dict]:
+    try:
+        query = (
+            sb.table("arguments")
+            .select("*")
+            .eq("postid", post_id)
+            .eq("side", opposite_side(current_side))
+            .neq("author", PERSONA["display_name"])
+        )
+        if created_after:
+            query = query.gt("createdat", created_after)
+        res = query.order("createdat", desc=True).limit(limit).execute()
+        return res.data or []
+    except Exception as e:
+        print(f"  Could not fetch opposing arguments: {e}")
+        return []
+
+
+def parse_switch_choice(text: str) -> Optional[str]:
+    raw = str(text or "").strip().lower()
+    if not raw:
+        return None
+    exact = re.match(r'^\s*["\']?(switch|stay)["\']?\s*[\.\!\,\;\:]?\s*$', raw)
+    if exact:
+        return exact.group(1)
+    token = re.search(r"\b(switch|stay)\b", raw)
+    if token:
+        return token.group(1)
+    return None
+
+
+def classify_initial_side(post: dict) -> tuple[str, str]:
+    client = OpenAIClient(api_key=OPENAI_KEY)
+    post_id = str(post.get("id", "")).strip()
+    title = post.get("title", "")
+    body = post.get("body", "")
+    fallback_key = f"{PERSONA['display_name']}|{post_id or title}"
+    prompt_variants = [
+        {
+            "role": "system",
+            "content": PERSONA["prompt_style"],
+        },
+        {
+            "role": "system",
+            "content": (
+                f"You are selecting the stance for persona {PERSONA['display_name']}. "
+                "Return one token only: for or against."
+            ),
+        },
+    ]
+
+    votes: list[str] = []
+    for system_prompt in prompt_variants:
+        for _ in range(SIDE_CLASSIFY_MAX_ATTEMPTS):
+            msg = client.chat.completions.create(
+                model=MODEL,
+                max_completion_tokens=32,
+                messages=[
+                    system_prompt,
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Debate title: {title}\n\nDebate body: {body}\n\n"
+                            f"Which side should {PERSONA['display_name']} take in character? "
+                            "Return exactly one token: for or against."
+                        ),
+                    },
+                ],
+            )
+            parsed = parse_side_choice(extract_text(msg))
+            if parsed:
+                votes.append(parsed)
+
+    if votes and all(vote == votes[0] for vote in votes):
+        return votes[0], "initial-model"
+
+    fallback_side = deterministic_side_from_key(fallback_key)
+    print(f"  [debug] Using hash fallback for initial side: {fallback_side} (votes={votes})")
+    return fallback_side, "initial-model-hash-fallback"
+
+
+def should_switch_side(
+    post: dict,
+    current_side: str,
+    own_last_arg: dict,
+    opposing_args: list[dict],
+) -> bool:
+    if not opposing_args:
+        return False
+
+    client = OpenAIClient(api_key=OPENAI_KEY)
+    title = post.get("title", "")
+    body = post.get("body", "")
+    own_body = to_one_paragraph(str(own_last_arg.get("body", "")))[:1200]
+    opposing_blob = "\n\n".join(
+        f"Opposing argument {idx + 1} by {arg.get('author', 'unknown')}: "
+        f"{to_one_paragraph(str(arg.get('body', '')))[:800]}"
+        for idx, arg in enumerate(opposing_args[:3])
+    )
+
+    decisions: list[str] = []
+    for _ in range(SWITCH_DECISION_MAX_ATTEMPTS):
+        msg = client.chat.completions.create(
+            model=MODEL,
+            max_completion_tokens=32,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        PERSONA["prompt_style"] + "\n\n"
+                        "Decide if you should switch sides based on argument strength only. "
+                        "Return one token only: switch or stay."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Debate title: {title}\n\nDebate body: {body}\n\n"
+                        f"Current side: {current_side}\n\n"
+                        f"Your last argument:\n{own_body}\n\n"
+                        f"New opposing arguments:\n{opposing_blob}\n\n"
+                        "If the opposing case is genuinely stronger and you are convinced, return switch. "
+                        "Otherwise return stay. Return exactly one token: switch or stay."
+                    ),
+                },
+            ],
+        )
+        decision = parse_switch_choice(extract_text(msg))
+        if decision:
+            decisions.append(decision)
+
+    if decisions and all(decision == "switch" for decision in decisions):
+        return True
+    if decisions:
+        print(f"  [debug] staying on current side (switch votes={decisions})")
+    else:
+        print("  [debug] staying on current side (no parseable switch/stay votes)")
+    return False
+
+
+def resolve_persona_side(sb: Client, post: dict) -> tuple[Optional[str], Optional[str], bool, str]:
+    post_id = str(post.get("id", ""))
+    if not post_id:
+        return None, None, False, "missing-post-id"
+
+    if PERSONA["display_name"] == PAUL_NAME and is_paul_author(post.get("author")):
+        return "for", None, False, "paul-authored-debate"
+
+    own_last_arg = get_last_persona_argument(sb, post_id)
+    if own_last_arg:
+        current_side = normalize_side(own_last_arg.get("side"))
+        if current_side:
+            opposing_args = get_recent_opposing_arguments(
+                sb,
+                post_id,
+                current_side,
+                own_last_arg.get("createdat"),
+            )
+            if opposing_args and should_switch_side(post, current_side, own_last_arg, opposing_args):
+                return opposite_side(current_side), None, False, "mind-change-switch"
+            return current_side, None, False, "stick-with-prior"
+
+    if PERSONA["display_name"] == "Athena":
+        side, paul_context, mention_paul, source = resolve_athena_initial_side(sb, post)
+        if side:
+            return side, paul_context, mention_paul, source
+
+    initial_side, source = classify_initial_side(post)
+    return initial_side, None, False, source
+
+
 # ── OpenAI helpers ────────────────────────────────────────────────────────────
 
 def extract_text(msg) -> str:
@@ -177,33 +565,78 @@ def extract_text(msg) -> str:
     return ""
 
 
+def looks_like_paul_style(text: str) -> bool:
+    lower = (text or "").lower()
+    return any(re.search(pattern, lower) for pattern in PAUL_STYLE_PATTERNS)
+
+
+def to_one_paragraph(text: str) -> str:
+    lines = [line.strip() for line in str(text or "").splitlines() if line.strip()]
+    return " ".join(lines).strip()
+
+
 # ── Content generation ────────────────────────────────────────────────────────
 
-def generate_argument(post: dict) -> str:
+def generate_argument(post: dict, side: str, paul_context: Optional[str], mention_paul: bool) -> str:
     client = OpenAIClient(api_key=OPENAI_KEY)
     title  = post.get("title", "")
     body   = post.get("body", "")
+    result = ""
+    is_athena = PERSONA["display_name"] == "Athena"
+    rebuttal_context = ""
+    if paul_context:
+        clipped = paul_context[:600]
+        if mention_paul:
+            rebuttal_context = (
+                f"\n\n{PAUL_NAME}'s latest argument to rebut:\n"
+                f"{clipped}\n"
+                "Address this directly and explain why it is wrong."
+            )
 
-    msg = client.chat.completions.create(
-        model=MODEL,
-        max_completion_tokens=5000,
-        messages=[
-            {"role": "system", "content": PERSONA["prompt_style"]},
-            {
-                "role": "user",
-                "content": (
-                    f"You're arguing in this debate:\nTitle: {title}\n\n{body}\n\n"
-                    "Write your argument. Be 2–4 paragraphs. Plain text only, no markdown, no headers. "
-                    "Argue hard. Make a real point. Be true to your character."
-                ),
-            },
-        ],
-    )
-    print(f"  [debug] finish_reason: {msg.choices[0].finish_reason}")
-    print(f"  [debug] message type: {type(msg.choices[0].message.content)}")
-    print(f"  [debug] message raw: {repr(msg.choices[0].message)}")
-    result = extract_text(msg)
-    print(f"  [debug] extracted length: {len(result)} chars")
+    for attempt in range(1, ATHENA_MAX_STYLE_RETRIES + 1):
+        system_prompt = PERSONA["prompt_style"]
+        if is_athena:
+            system_prompt += (
+                "\n\nHard constraints:\n"
+                "- Never cite or reference Scripture, Bible verses, God, Jesus, church, or Christian doctrine.\n"
+                "- Never invoke the Founders, natural law, or religious/traditional authority.\n"
+                "- Use analytical reasoning: incentives, tradeoffs, institutional design, and real-world outcomes.\n"
+                "- Keep Athena's tone: precise, cool-headed, and strategic."
+            )
+
+        msg = client.chat.completions.create(
+            model=MODEL,
+            max_completion_tokens=5000,
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt,
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"You're arguing in this debate:\nTitle: {title}\n\n{body}\n\n"
+                        f"You must argue the {side.upper()} side. Do not switch sides."
+                        f"{rebuttal_context}\n\n"
+                        "Write your argument in exactly one paragraph. Plain text only, no markdown, no headers. "
+                        "Argue hard. Make a real point. Be true to your character."
+                    ),
+                },
+            ],
+        )
+        print(f"  [debug] finish_reason: {msg.choices[0].finish_reason}")
+        print(f"  [debug] message type: {type(msg.choices[0].message.content)}")
+        print(f"  [debug] message raw: {repr(msg.choices[0].message)}")
+        result = to_one_paragraph(extract_text(msg))
+        print(f"  [debug] extracted length: {len(result)} chars")
+        if not result:
+            continue
+        if is_athena and looks_like_paul_style(result):
+            if attempt < ATHENA_MAX_STYLE_RETRIES:
+                print("  [debug] Athena style drift detected; retrying generation...")
+            continue
+        return result
+
     return result
 
 
@@ -221,7 +654,7 @@ def generate_new_post() -> tuple[str, str]:
                     "Start a brand-new debate on a topic you genuinely care about. "
                     "Pick something political, ethical, or social — something real and contentious. "
                     "Output format: first line is the TITLE only (no label, no colon), "
-                    "then a blank line, then 2–4 paragraphs of your argument. "
+                    "then a blank line, then exactly one paragraph of your argument. "
                     "Plain text only, no markdown, no bullet points. Be opinionated."
                 ),
             },
@@ -242,19 +675,50 @@ def generate_new_post() -> tuple[str, str]:
                 title_found = True
         else:
             body_lines.append(line)
-    body = "\n".join(body_lines).strip() or raw
+    body = to_one_paragraph("\n".join(body_lines).strip() or raw)
     title = title or "A Debate Worth Having"
     return title, body
 
 
 # ── Posting logic ─────────────────────────────────────────────────────────────
 
+def increment_post_argument_counters(sb: Client, post_id: str, side: str) -> None:
+    try:
+        res = (
+            sb.table("posts")
+            .select("argcount, forcount, againstcount")
+            .eq("id", post_id)
+            .limit(1)
+            .execute()
+        )
+        post_row = (res.data or [None])[0]
+        if not post_row:
+            return
+
+        updates = {
+            "argcount": int(post_row.get("argcount") or 0) + 1,
+        }
+        if side == "for":
+            updates["forcount"] = int(post_row.get("forcount") or 0) + 1
+        elif side == "against":
+            updates["againstcount"] = int(post_row.get("againstcount") or 0) + 1
+
+        sb.table("posts").update(updates).eq("id", post_id).execute()
+    except Exception as e:
+        print(f"  [warn] Could not update post counters for {post_id}: {e}")
+
+
 def post_argument(sb: Client, post: dict):
-    body = generate_argument(post)
+    side, paul_context, mention_paul, side_source = resolve_persona_side(sb, post)
+    if not side:
+        print(f"❌ Could not resolve side ({side_source}) — skipping insert")
+        return
+
+    print(f"  [debug] {PERSONA['display_name']} side: {side} (source: {side_source})")
+    body = generate_argument(post, side, paul_context, mention_paul)
     if not body:
         print("❌ Empty argument body — skipping insert")
         return
-    side = random.choice(SIDES)
     now  = datetime.now(timezone.utc).isoformat()
     try:
         sb.table("arguments").insert({
@@ -265,6 +729,7 @@ def post_argument(sb: Client, post: dict):
             "author":    PERSONA["display_name"],
             "createdat": now,
         }).execute()
+        increment_post_argument_counters(sb, str(post["id"]), side)
         print(f"✅ {PERSONA['display_name']} argued ({side}) on: \"{post.get('title', post['id'])}\"")
     except Exception as e:
         print(f"❌ Failed to post argument: {e}")
@@ -294,6 +759,7 @@ def post_new_debate(sb: Client):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def run():
+    global PERSONA
     print(f"\n🤖 Agorium Bot — {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
 
     if not OPENAI_KEY:
@@ -301,6 +767,7 @@ def run():
         sys.exit(1)
 
     sb = get_client()
+    PERSONA = choose_alternating_persona(sb)
 
     print(f"\n🎭 Persona: {PERSONA['display_name']}")
     ensure_persona_user(sb)
