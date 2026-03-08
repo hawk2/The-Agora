@@ -1,2 +1,5 @@
 node_modules/
 supabase/.temp/
+__pycache__/
+*.pyc
+bot_ui/db.sqlite3

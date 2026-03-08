@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agorium Bot Control</title>
+  <style>
+    :root {
+      --bg: #f5f3ed;
+      --panel: #ffffff;
+      --ink: #1f2a37;
+      --muted: #677084;
+      --line: #d8dce5;
+      --accent: #1f5d3d;
+      --warn: #9a3412;
+      --err: #991b1b;
+    }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at 10% -20%, #fff7db, var(--bg) 35%);
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 32px auto;
+      padding: 0 18px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(31, 42, 55, 0.08);
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      letter-spacing: 0.02em;
+    }
+    p.sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .field label {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    input[type="text"], select {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 15px;
+      font-family: inherit;
+      background: white;
+    }
+    .radio-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-top: 4px;
+    }
+    .radio-row label {
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    button {
+      background: var(--accent);
+      color: white;
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 16px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(0.95); }
+    .msg {
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .msg.success { background: #ecfdf3; border: 1px solid #7dd3a8; color: #065f46; }
+    .msg.error { background: #fef2f2; border: 1px solid #fca5a5; color: var(--err); }
+    .msg.warning { background: #fff7ed; border: 1px solid #fdba74; color: var(--warn); }
+    .debates {
+      max-height: 280px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f8fafc; position: sticky; top: 0; }
+    tr:last-child td { border-bottom: 0; }
+    .mono { font-family: Menlo, Monaco, monospace; font-size: 12px; color: var(--muted); }
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Agorium Bot Control</h1>
+      <p class="sub">Choose persona, action, debate target, and side override from one panel.</p>
+      <div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:13px;color:var(--muted);">Signed in as <strong>{{ session_username|default:"unknown" }}</strong></span>
+        <form method="post" action="{% url 'panel:logout' %}" style="margin:0;">
+          {% csrf_token %}
+          <button type="submit" style="background:#374151;padding:8px 12px;font-size:13px;">Sign Out</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      {% if env_missing %}
+        <div class="msg warning">Missing env vars: {{ env_missing|join:", " }}. Set them before running actions.</div>
+      {% endif %}
+      {% if load_error %}
+        <div class="msg warning">Could not load debates: {{ load_error }}</div>
+      {% endif %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="msg {{ message.tags|default:'warning' }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post" id="bot-form">
+        {% csrf_token %}
+        <div class="field">
+          <label>Action</label>
+          <div class="radio-row">
+            <label><input type="radio" name="action" value="argue" checked> Argue in debate</label>
+            <label><input type="radio" name="action" value="new"> Start new debate</label>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="persona">Persona</label>
+            <select id="persona" name="persona" required>
+              {% for p in personas %}
+                <option value="{{ p.key }}">{{ p.display_name }} — {{ p.bio }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field" id="side-wrap">
+            <label for="side">Side (Argue only)</label>
+            <select id="side" name="side">
+              <option value="auto">Auto</option>
+              <option value="for">For</option>
+              <option value="against">Against</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field" id="debate-wrap">
+          <label for="debate_id">Target Debate (Argue only)</label>
+          <select id="debate_id" name="debate_id">
+            <option value="">Select a debate</option>
+            {% for d in debates %}
+              <option value="{{ d.id }}">{{ d.title|default:d.id }} — by {{ d.author|default:"unknown" }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit">Run Bot Action</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">Recent Debates</h2>
+      <div class="debates">
+        <table>
+          <thead>
+            <tr><th>Title</th><th>Author</th><th>ID</th></tr>
+          </thead>
+          <tbody>
+            {% for d in debates %}
+              <tr>
+                <td>{{ d.title|default:"(untitled)" }}</td>
+                <td>{{ d.author|default:"unknown" }}</td>
+                <td class="mono">{{ d.id }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3">No debates loaded.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleArgueFields() {
+      const action = document.querySelector('input[name="action"]:checked')?.value || 'argue';
+      const show = action === 'argue';
+      document.getElementById('debate-wrap').style.display = show ? 'block' : 'none';
+      document.getElementById('side-wrap').style.display = show ? 'block' : 'none';
+      document.getElementById('debate_id').required = show;
+    }
+
+    document.querySelectorAll('input[name="action"]').forEach((el) => {
+      el.addEventListener('change', toggleArgueFields);
+    });
+
+    toggleArgueFields();
+  </script>
+</body>
+</html>

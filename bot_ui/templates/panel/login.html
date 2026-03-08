@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agorium Bot UI Login</title>
+  <style>
+    :root {
+      --bg: #f6f5f0;
+      --panel: #fff;
+      --ink: #182535;
+      --muted: #5f6c7b;
+      --line: #d7dce6;
+      --accent: #1f5d3d;
+      --err: #991b1b;
+      --warn: #9a3412;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Georgia, "Times New Roman", serif;
+      background: radial-gradient(circle at 20% -20%, #fff7db, var(--bg) 45%);
+      color: var(--ink);
+      padding: 18px;
+    }
+    .card {
+      width: min(430px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 22px;
+      box-shadow: 0 12px 32px rgba(24, 37, 53, 0.1);
+    }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p.sub { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .field label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    input {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      border-radius: 7px;
+      padding: 11px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .msg { border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; font-size: 14px; }
+    .msg.error { background: #fef2f2; border: 1px solid #fca5a5; color: var(--err); }
+    .msg.success { background: #ecfdf3; border: 1px solid #7dd3a8; color: #065f46; }
+    .msg.warning { background: #fff7ed; border: 1px solid #fdba74; color: var(--warn); }
+    .hint { margin-top: 12px; font-size: 13px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Agorium Bot Control</h1>
+    <p class="sub">Sign in to access the dashboard.</p>
+
+    {% if not password_required %}
+      <div class="msg warning">BOT_UI_LOGIN_PASSWORD is not configured on this server.</div>
+    {% endif %}
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="msg {{ message.tags|default:'warning' }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" required autocomplete="username" placeholder="{{ configured_username }}">
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password">
+      </div>
+
+      <button type="submit">Sign In</button>
+    </form>
+
+    <p class="hint">Expected username: <strong>{{ configured_username }}</strong></p>
+  </div>
+</body>
+</html>
