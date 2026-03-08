@@ -125,27 +125,6 @@
     .hof-big-stat.mind { color: var(--red); }
     .hof-big-stat.args { color: var(--navy); }
 
-    /* ARGUMENT CARDS */
-    .arg-hof-list { display: flex; flex-direction: column; gap: 16px; }
-    .arg-hof-card { background: white; border: 1px solid rgba(46,80,119,0.1); border-radius: 3px; padding: 24px 28px; position: relative; overflow: hidden; cursor: pointer; transition: all 0.25s; }
-    .arg-hof-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(46,80,119,0.09); }
-    .arg-hof-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--green); }
-    .arg-hof-card.rank-1::before { background: var(--gold); }
-    .arg-hof-card.rank-2::before { background: var(--silver); }
-    .arg-hof-card.rank-3::before { background: var(--bronze); }
-    .arg-hof-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .arg-hof-rank { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
-    .arg-hof-rank.gold   { color: var(--gold); }
-    .arg-hof-rank.silver { color: var(--silver); }
-    .arg-hof-rank.bronze { color: var(--bronze); }
-    .arg-hof-rank.other  { color: #aaa; }
-    .steel-badge { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 20px; background: rgba(53,143,101,0.1); color: var(--green); }
-    .arg-hof-body { font-size: 15px; color: #444; line-height: 1.6; margin-bottom: 14px; font-style: italic; }
-    .arg-hof-meta { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
-    .arg-hof-author { font-family: 'Cinzel', serif; font-size: 11px; color: var(--navy); opacity: 0.7; text-decoration: none; }
-    .arg-hof-author:hover { opacity: 1; }
-    .arg-hof-debate { font-size: 12px; color: #aaa; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
     /* EMPTY / LOADING */
     .hof-empty { text-align: center; padding: 56px 24px; border: 2px dashed rgba(46,80,119,0.12); border-radius: 4px; color: #aaa; }
     .hof-empty-icon { font-size: 36px; margin-bottom: 12px; }
@@ -246,19 +225,6 @@
       </div>
     </section>
 
-    <!-- STEELMAN CHAMPIONS -->
-    <section class="hof-section" id="section-steel">
-      <div class="hof-section-header">
-        <span class="hof-section-icon">🗡️</span>
-        <div>
-          <p class="hof-section-label">Arguments</p>
-          <h2 class="hof-section-title">Steelman Champions</h2>
-        </div>
-      </div>
-      <div class="arg-hof-list" id="list-steel">
-        <div style="text-align:center;padding:32px;"><div class="loading-spinner"></div></div>
-      </div>
-    </section>
 
   </main>
 
@@ -431,43 +397,6 @@
       }).join('');
     }
 
-    // ── STEELMAN CHAMPIONS ────────────────────────────────────────────────────
-
-    function renderSteelChampions(args, posts) {
-      const el = document.getElementById('list-steel');
-      const postMap = {};
-      posts.forEach(p => { postMap[p.id] = p; });
-
-      const top = [...args]
-        .filter(a => (a.steelmancount || 0) > 0)
-        .sort((a, b) => (b.steelmancount || 0) - (a.steelmancount || 0))
-        .slice(0, 5);
-
-      if (!top.length) {
-        el.innerHTML = emptyHtml('No steelmanned arguments yet — earn the badge by making the strongest case for your side.');
-        return;
-      }
-
-      el.innerHTML = top.map((a, i) => {
-        const rc    = rankClass(i);
-        const rl    = rankLabel(i);
-        const post  = postMap[a.postid] || null;
-        const body  = (a.body || '').slice(0, 200);
-        return `
-          <div class="arg-hof-card ${rankCardClass(i)}" onclick="${post ? `AgoraStore.setCurrentPost('${post.id}');location.href='debate.html'` : ''}">
-            <div class="arg-hof-top">
-              <span class="arg-hof-rank ${rc}">${rl} Steelman</span>
-              <span class="steel-badge">⚔ ${a.steelmancount} steelman${a.steelmancount !== 1 ? 's' : ''}</span>
-            </div>
-            <div class="arg-hof-body">"${AgoraStore.escHtml(body)}${(a.body || '').length > 200 ? '…' : ''}"</div>
-            <div class="arg-hof-meta">
-              <a class="arg-hof-author" href="${AgoraStore.profileUrl(a.author || '')}" onclick="event.stopPropagation()">${AgoraStore.escHtml(a.author || 'unknown')}</a>
-              ${post ? `<span class="arg-hof-debate">on: ${AgoraStore.escHtml(post.title || '')}</span>` : ''}
-            </div>
-          </div>`;
-      }).join('');
-    }
-
     // ── HELPERS ───────────────────────────────────────────────────────────────
 
     function emptyHtml(msg) {
@@ -508,7 +437,6 @@
       renderMindChangers(posts);
       renderMostUpvoted(args, votes, posts);
       renderMostDebated(posts);
-      renderSteelChampions(args, posts);
     }
 
     initPage();
