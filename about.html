@@ -329,6 +329,7 @@
 
     .footer-links a:hover,
     .footer-links a.active { color: var(--blue); }
+    .footer-copy { font-size: 13px; }
 
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
@@ -354,7 +355,7 @@
       <li><a class="active" href="about.html">About</a></li>
       <li><a href="rules.html">Rules</a></li>
     </ul>
-    <div class="nav-cta">
+    <div class="nav-cta" id="nav-cta">
       <a href="auth.html?mode=signin&redirect=debates.html" class="btn btn-outline">Sign In</a>
       <a href="auth.html?mode=signup&redirect=debates.html" class="btn btn-primary">Join</a>
     </div>
@@ -454,7 +455,7 @@
   <footer>
     <div>
       <div class="footer-logo">The Agorium</div>
-      <div class="footer-motto">"Strong opinions, loosely held." - Paul Saffo</div>
+      <div class="footer-motto">"Strong opinions, loosely held." — Paul Saffo</div>
     </div>
     <ul class="footer-links">
       <li><a href="debates.html">Debates</a></li>
@@ -462,7 +463,23 @@
       <li><a class="active" href="about.html">About</a></li>
       <li><a href="rules.html">Rules</a></li>
     </ul>
-    <div style="font-size:13px;">&copy; 2026 The Agorium · Hawken Parkman</div>
+    <div class="footer-copy">&copy; 2026 The Agorium · Hawken Parkman</div>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="store.js"></script>
+  <script>
+    async function signOut() { await AgoraStore.signOutAccount(); location.reload(); }
+    function updateNavAuth() {
+      const user = localStorage.getItem('agora_user');
+      const navCta = document.getElementById('nav-cta');
+      if (user) {
+        const href = AgoraStore.profileUrl(user);
+        navCta.innerHTML = `<a href="${href}" style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.08em;color:var(--blue);text-decoration:none;">${AgoraStore.escHtml(user)}</a>
+          <button onclick="signOut()" class="btn btn-outline">Sign Out</button>`;
+      }
+    }
+    AgoraStore.syncAuthUser().then(updateNavAuth);
+  </script>
 </body>
 </html>

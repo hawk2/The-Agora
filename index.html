@@ -109,6 +109,7 @@
     .footer-links { display: flex; gap: 24px; list-style: none; }
     .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-family: 'Cinzel', serif; letter-spacing: 0.08em; transition: color 0.2s; }
     .footer-links a:hover { color: var(--blue); }
+    .footer-copy { font-size: 13px; }
 
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
@@ -133,7 +134,7 @@
       <li><a href="about.html">About</a></li>
       <li><a href="rules.html">Rules</a></li>
     </ul>
-    <div class="nav-cta">
+    <div class="nav-cta" id="nav-cta">
       <a href="auth.html?mode=signin&redirect=debates.html" class="btn btn-outline">Sign In</a>
       <a href="auth.html?mode=signup&redirect=debates.html" class="btn btn-primary">Join</a>
     </div>
@@ -210,14 +211,31 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="store.js"></script>
   <script>
-    (async function() {
-      const posts = await AgoraStore.getAllPosts();
-      if (posts.length) {
-        const section = document.getElementById('recent-debates');
-        const grid = document.getElementById('debates-grid');
-        grid.innerHTML = posts.slice(0, 6).map(p => AgoraStore.renderPostCard(p)).join('');
-        section.style.display = 'block';
+    function updateNavAuth() {
+      const user = localStorage.getItem('agora_user');
+      const navCta = document.getElementById('nav-cta');
+      if (user) {
+        const href = AgoraStore.profileUrl(user);
+        navCta.innerHTML = `<a href="${href}" style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:0.08em;color:var(--blue);text-decoration:none;">${AgoraStore.escHtml(user)}</a>
+          <button onclick="signOut()" class="btn btn-outline">Sign Out</button>`;
       }
+    }
+    async function signOut() {
+      await AgoraStore.signOutAccount();
+      location.reload();
+    }
+    (async function() {
+      await AgoraStore.syncAuthUser();
+      updateNavAuth();
+      try {
+        const posts = await AgoraStore.getAllPosts();
+        if (posts.length) {
+          const section = document.getElementById('recent-debates');
+          const grid = document.getElementById('debates-grid');
+          grid.innerHTML = posts.slice(0, 6).map(p => AgoraStore.renderPostCard(p)).join('');
+          section.style.display = 'block';
+        }
+      } catch(e) { /* recent debates are best-effort on the home page */ }
     })();
   </script>
 
@@ -232,7 +250,7 @@
       <li><a href="about.html">About</a></li>
       <li><a href="rules.html">Rules</a></li>
     </ul>
-    <div style="font-size:13px;">© 2026 The Agorium · Hawken Parkman</div>
+    <div class="footer-copy">© 2026 The Agorium · Hawken Parkman</div>
   </footer>
 
 

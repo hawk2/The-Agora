@@ -92,6 +92,7 @@
     .footer-links { display: flex; gap: 24px; list-style: none; }
     .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-family: 'Cinzel', serif; letter-spacing: 0.08em; transition: color 0.2s; }
     .footer-links a:hover, .footer-links a.active { color: var(--blue); }
+    .footer-copy { font-size: 13px; }
 
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
@@ -167,7 +168,7 @@
       <li><a href="about.html">About</a></li>
       <li><a href="rules.html">Rules</a></li>
     </ul>
-    <div style="font-size:13px;">© 2026 The Agorium · Hawken Parkman</div>
+    <div class="footer-copy">© 2026 The Agorium · Hawken Parkman</div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -218,9 +219,19 @@
       emptyState.style.display = 'none';
       grid.style.display = 'none';
 
-      const posts = await AgoraStore.getAllPosts();
+      let posts;
+      try {
+        posts = await AgoraStore.getAllPosts();
+      } catch(e) {
+        posts = [];
+      }
       loading.style.display = 'none';
 
+      if (posts === null || (AgoraStore.getLastError && AgoraStore.getLastError())) {
+        loading.innerHTML = '<div style="text-align:center;padding:80px 24px;color:#aaa;font-family:\'Cinzel\',serif;font-size:13px;letter-spacing:0.1em;">Could not load debates — check your connection and refresh.</div>';
+        loading.style.display = 'block';
+        return;
+      }
       if (!posts.length) {
         emptyState.style.display = 'block';
         return;

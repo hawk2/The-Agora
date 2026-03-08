@@ -139,6 +139,7 @@
     .footer-links { display: flex; gap: 24px; list-style: none; }
     .footer-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; font-family: 'Cinzel', serif; letter-spacing: 0.08em; transition: color 0.2s; }
     .footer-links a:hover, .footer-links a.active { color: var(--blue); }
+    .footer-copy { font-size: 13px; }
 
     @media (max-width: 768px) {
       nav { padding: 0 20px; }
@@ -239,7 +240,7 @@
       <li><a href="about.html">About</a></li>
       <li><a href="rules.html">Rules</a></li>
     </ul>
-    <div style="font-size:13px;">© 2026 The Agorium · Hawken Parkman</div>
+    <div class="footer-copy">© 2026 The Agorium · Hawken Parkman</div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -423,16 +424,25 @@
       return data || [];
     }
 
+    const errHtml = '<div class="hof-empty"><div class="hof-empty-icon">⚠</div><div class="hof-empty-text">Could not load — check your connection and refresh.</div></div>';
+
     async function initPage() {
       await AgoraStore.syncAuthUser();
       updateNavAuth();
 
-      // Fetch all data in parallel
-      const [posts, args, votes] = await Promise.all([
-        AgoraStore.getAllPosts(),
-        getAllArguments(),
-        getAllVotes(),
-      ]);
+      let posts, args, votes;
+      try {
+        [posts, args, votes] = await Promise.all([
+          AgoraStore.getAllPosts(),
+          getAllArguments(),
+          getAllVotes(),
+        ]);
+      } catch(e) {
+        document.getElementById('grid-minds').innerHTML   = errHtml;
+        document.getElementById('list-upvotes').innerHTML = errHtml;
+        document.getElementById('grid-debated').innerHTML = errHtml;
+        return;
+      }
 
       renderMindChangers(posts);
       renderMostUpvoted(args, votes, posts);

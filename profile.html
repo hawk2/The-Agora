@@ -278,10 +278,6 @@
       if (el) el.value = val || '';
     }
 
-    function clearBio() {
-      document.getElementById('edit-bio').value = '';
-    }
-
     function setEditMode(on) {
       editableFields.forEach((f) => {
         const viewEl = document.getElementById('view-' + f);
@@ -289,8 +285,6 @@
         if (viewEl) viewEl.style.display = on ? 'none' : 'block';
         if (editEl) editEl.style.display = on ? 'block' : 'none';
       });
-      const clearBioBtn = document.getElementById('clear-bio-btn');
-      if (clearBioBtn) clearBioBtn.style.display = (on && isOwnProfile) ? 'inline' : 'none';
       document.getElementById('save-row').classList.toggle('show', on && isOwnProfile);
       document.getElementById('edit-btn').textContent = on ? 'Cancel' : 'Edit Profile';
     }
