@@ -36,6 +36,7 @@ MODEL = "gpt-5-mini-2025-08-07"
 DECISION_MAX_COMPLETION_TOKENS = 5000
 ARGUMENT_MAX_COMPLETION_TOKENS = 5000
 NEW_POST_MAX_COMPLETION_TOKENS = 5000
+MODEL_EMPTY_RETRY_ATTEMPTS = 3
 
 SIDES = ["for", "against"]
 
@@ -198,6 +199,48 @@ def parse_switch_choice(text: str) -> Optional[str]:
     return None
 
 
+def extract_chat_completion_text(message) -> str:
+    """Safely extract text from OpenAI chat completion message payloads."""
+    if message is None:
+        return ""
+
+    content = getattr(message, "content", None)
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                text = item
+            elif isinstance(item, dict):
+                text = item.get("text") or item.get("content") or ""
+            else:
+                text = getattr(item, "text", "") or ""
+            if text:
+                parts.append(str(text))
+        if parts:
+            return "\n".join(parts)
+
+    refusal = getattr(message, "refusal", None)
+    if isinstance(refusal, str):
+        return refusal
+    return ""
+
+
+def to_one_paragraph(text: str) -> str:
+    return " ".join(str(text or "").split()).strip()
+
+
+def build_fallback_argument(side: str, post: dict) -> str:
+    title = str(post.get("title", "")).strip() or "this debate"
+    return to_one_paragraph(
+        f"I take the {side.upper()} side on \"{title}\" because the strongest evidence "
+        "and incentives point in that direction. The opposing claim sounds plausible at "
+        "first, but it fails once you test its real-world consequences."
+    )
+
+
 def build_debate_context(persona: dict, debate_args: list[dict]) -> str:
     persona_lc = str(persona.get("display_name", "")).strip().lower()
     if not debate_args:
@@ -234,7 +277,7 @@ def choose_initial_side(persona: dict, post: dict, debate_args: list[dict]) -> s
             },
         ],
     )
-    parsed = parse_side_choice(msg.choices[0].message.content or "")
+    parsed = parse_side_choice(extract_chat_completion_text(msg.choices[0].message))
     return parsed if parsed else "for"
 
 
@@ -265,7 +308,7 @@ def should_switch_side(persona: dict, post: dict, current_side: str, debate_args
             },
         ],
     )
-    decision = parse_switch_choice(msg.choices[0].message.content or "")
+    decision = parse_switch_choice(extract_chat_completion_text(msg.choices[0].message))
     return decision == "switch"
 
 
@@ -296,36 +339,48 @@ def generate_argument(persona: dict, post: dict, side: str, debate_args: list[di
     title  = post.get("title", "")
     body   = post.get("body", "")
     context = build_debate_context(persona, debate_args)
+    payload = [
+        {"role": "system", "content": persona["prompt_style"]},
+        {
+            "role": "user",
+            "content": (
+                f"You're arguing in this debate:\nTitle: {title}\n\n{body}\n\n"
+                f"Resolved side: {side.upper()} (source: {side_source}).\n\n"
+                "All arguments currently in this debate are below. "
+                "Entries marked OWN were written by you. "
+                "Largely keep your OWN view unless you are genuinely convinced to change.\n\n"
+                f"{context}\n\n"
+                "Direct clash requirements: target at least one OTHER argument by author and claim, "
+                "state exactly why it fails, and present a stronger counter-claim. "
+                "If there are multiple OTHER arguments, prioritize the strongest one and rebut it head-on. "
+                "No soft agreement language. "
+                "Include at least one sentence in this pattern: "
+                "\"<Author> said <claim>, but that's not right because <reason>.\"\n\n"
+                "Write your argument in exactly one paragraph (max 7 sentences, average 2-4). "
+                "No markdown. No headers. "
+                f"You must argue the {side.upper()} side."
+                "Argue hard. Make a real point. Be true to your character."
+            ),
+        },
+    ]
 
-    msg = client.chat.completions.create(
-        model=MODEL,
-        max_completion_tokens=ARGUMENT_MAX_COMPLETION_TOKENS,
-        messages=[
-            {"role": "system", "content": persona["prompt_style"]},
-            {
-                "role": "user",
-                "content": (
-                    f"You're arguing in this debate:\nTitle: {title}\n\n{body}\n\n"
-                    f"Resolved side: {side.upper()} (source: {side_source}).\n\n"
-                    "All arguments currently in this debate are below. "
-                    "Entries marked OWN were written by you. "
-                    "Largely keep your OWN view unless you are genuinely convinced to change.\n\n"
-                    f"{context}\n\n"
-                    "Direct clash requirements: target at least one OTHER argument by author and claim, "
-                    "state exactly why it fails, and present a stronger counter-claim. "
-                    "If there are multiple OTHER arguments, prioritize the strongest one and rebut it head-on. "
-                    "No soft agreement language. "
-                    "Include at least one sentence in this pattern: "
-                    "\"<Author> said <claim>, but that's not right because <reason>.\"\n\n"
-                    "Write your argument in exactly one paragraph (max 7 sentences, average 2-4). "
-                    "No markdown. No headers. "
-                    f"You must argue the {side.upper()} side."
-                    "Argue hard. Make a real point. Be true to your character."
-                ),
-            },
-        ],
-    )
-    return msg.choices[0].message.content.strip()
+    for attempt in range(1, MODEL_EMPTY_RETRY_ATTEMPTS + 1):
+        msg = client.chat.completions.create(
+            model=MODEL,
+            max_completion_tokens=ARGUMENT_MAX_COMPLETION_TOKENS,
+            messages=payload,
+        )
+        raw = extract_chat_completion_text(msg.choices[0].message)
+        paragraph = to_one_paragraph(raw)
+        if len(paragraph) >= 3:
+            return paragraph
+        print(
+            f"  [warn] Empty argument body from model "
+            f"(attempt {attempt}/{MODEL_EMPTY_RETRY_ATTEMPTS})."
+        )
+
+    print("  [warn] Using deterministic fallback argument body.")
+    return build_fallback_argument(side, post)
 
 
 def generate_new_post(persona: dict) -> tuple[str, str]:
@@ -349,10 +404,12 @@ def generate_new_post(persona: dict) -> tuple[str, str]:
             },
         ],
     )
-    raw   = msg.choices[0].message.content.strip()
+    raw = extract_chat_completion_text(msg.choices[0].message).strip()
+    if not raw:
+        raise RuntimeError("Model returned an empty debate post body.")
     lines = raw.split("\n", 1)
     title = lines[0].strip()
-    body  = lines[1].strip() if len(lines) > 1 else raw
+    body = to_one_paragraph(lines[1] if len(lines) > 1 else raw)
     return title, body
 
 
@@ -367,10 +424,10 @@ def post_argument(sb: Client, persona: dict, post: dict, forced_side: Optional[s
         side, side_source = resolve_side(persona, post, debate_args)
     print(f"  [debug] side={side} source={side_source} args_in_context={len(debate_args)}")
 
-    body = generate_argument(persona, post, side, debate_args, side_source)
-    now  = datetime.now(timezone.utc).isoformat()
-    arg_id = str(uuid4())
     try:
+        body = generate_argument(persona, post, side, debate_args, side_source)
+        now = datetime.now(timezone.utc).isoformat()
+        arg_id = str(uuid4())
         sb.table("arguments").insert({
             "id":        arg_id,
             "postid":    post["id"],
@@ -402,10 +459,10 @@ def post_argument(sb: Client, persona: dict, post: dict, forced_side: Optional[s
 
 
 def post_new_debate(sb: Client, persona: dict) -> dict:
-    title, body = generate_new_post(persona)
-    now = datetime.now(timezone.utc).isoformat()
-    post_id = str(uuid4())
     try:
+        title, body = generate_new_post(persona)
+        now = datetime.now(timezone.utc).isoformat()
+        post_id = str(uuid4())
         sb.table("posts").insert({
             "id":        post_id,
             "type":      "debate",

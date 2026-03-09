@@ -13,6 +13,7 @@ const SWITCH_DECISION_MAX_ATTEMPTS = 3;
 const DECISION_MAX_COMPLETION_TOKENS = 256;
 const ARGUMENT_MAX_COMPLETION_TOKENS = 1200;
 const NEW_POST_MAX_COMPLETION_TOKENS = 900;
+const MODEL_EMPTY_RETRY_ATTEMPTS = 3;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -143,6 +144,36 @@ function deterministicSideFromKey(key: string): Side {
   return checksum % 2 === 0 ? "for" : "against";
 }
 
+function extractChatMessageText(message: unknown): string {
+  if (!message || typeof message !== "object") return "";
+  const msg = message as Record<string, unknown>;
+  const content = msg.content;
+
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const part of content) {
+      if (typeof part === "string") {
+        if (part.trim()) parts.push(part);
+        continue;
+      }
+      if (!part || typeof part !== "object") continue;
+      const item = part as Record<string, unknown>;
+      const text =
+        typeof item.text === "string" ? item.text
+          : typeof item.content === "string" ? item.content
+            : typeof item.value === "string" ? item.value
+              : "";
+      if (text.trim()) parts.push(text);
+    }
+    if (parts.length) return parts.join("\n");
+  }
+
+  const refusal = msg.refusal;
+  if (typeof refusal === "string") return refusal;
+  return "";
+}
+
 async function predictPaulSide(
   ai: OpenAI,
   post: Record<string, unknown>,
@@ -176,7 +207,7 @@ async function predictPaulSide(
           },
         ],
       });
-      const parsed = parseSideChoice(msg.choices[0].message.content);
+      const parsed = parseSideChoice(extractChatMessageText(msg.choices[0].message));
       if (parsed) votes.push(parsed);
     }
   }
@@ -308,7 +339,7 @@ async function classifyInitialSide(
           },
         ],
       });
-      const parsed = parseSideChoice(msg.choices[0].message.content);
+      const parsed = parseSideChoice(extractChatMessageText(msg.choices[0].message));
       if (parsed) votes.push(parsed);
     }
   }
@@ -364,7 +395,7 @@ async function shouldSwitchSide(
         },
       ],
     });
-    const decision = parseSwitchDecision(msg.choices[0].message.content);
+    const decision = parseSwitchDecision(extractChatMessageText(msg.choices[0].message));
     if (decision) decisions.push(decision);
   }
   if (decisions.length && decisions.every((d) => d === "switch")) return true;
@@ -423,6 +454,15 @@ function toOneParagraph(text: unknown): string {
     .trim();
 }
 
+function buildFallbackArgument(side: Side, post: Record<string, unknown>): string {
+  const title = String(post.title ?? "").trim() || "this debate";
+  return toOneParagraph(
+    `I take the ${side.toUpperCase()} side on "${title}" because the strongest evidence ` +
+    `and incentives point that way. The opposing claim sounds plausible at first, ` +
+    `but it fails once you test its real-world consequences.`,
+  );
+}
+
 // ── Content generation ────────────────────────────────────────────────────────
 
 async function generateArgument(
@@ -441,13 +481,13 @@ async function generateArgument(
   const systemPrompt = isAthenaEquivalent(persona)
     ? `${persona.prompt_style}\n\nHard constraints:\n- Never cite Scripture, Bible verses, God, Jesus, church, or Christian doctrine.\n- Never invoke the Founders, natural law, or religious authority.\n- Stay analytical and strategic.`
     : persona.prompt_style;
-  const msg = await ai.chat.completions.create({
+  const request = {
     model: MODEL,
     max_completion_tokens: ARGUMENT_MAX_COMPLETION_TOKENS,
     messages: [
-      { role: "system", content: systemPrompt },
+      { role: "system" as const, content: systemPrompt },
       {
-        role: "user",
+        role: "user" as const,
         content:
           `You're arguing in this debate:\nTitle: ${title}\n\n${body}\n\n` +
           `You must argue the ${side.toUpperCase()} side. Do not switch sides.` +
@@ -456,8 +496,23 @@ async function generateArgument(
           `Argue hard. Make a real point. Be true to your character.`,
       },
     ],
-  });
-  return toOneParagraph(msg.choices[0].message.content);
+  };
+
+  for (let attempt = 1; attempt <= MODEL_EMPTY_RETRY_ATTEMPTS; attempt++) {
+    const msg = await ai.chat.completions.create(request);
+    const raw = extractChatMessageText(msg.choices[0].message);
+    const paragraph = toOneParagraph(raw);
+    if (paragraph.length >= 3) {
+      return paragraph.slice(0, 5000);
+    }
+    console.warn(
+      `  [warn] Empty argument body from model ` +
+      `(attempt ${attempt}/${MODEL_EMPTY_RETRY_ATTEMPTS}).`,
+    );
+  }
+
+  console.warn("  [warn] Using deterministic fallback argument body.");
+  return buildFallbackArgument(side, post).slice(0, 5000);
 }
 
 async function generateNewPost(
@@ -479,7 +534,8 @@ async function generateNewPost(
       },
     ],
   });
-  const raw = msg.choices[0].message.content!.trim();
+  const raw = extractChatMessageText(msg.choices[0].message).trim();
+  if (!raw) throw new Error("Model returned an empty debate post body.");
   const allLines = raw.split("\n");
   let title = "";
   const bodyLines: string[] = [];
@@ -607,6 +663,9 @@ async function runArgumentAction(
     paulContext,
     mentionPaul,
   );
+  if (body.trim().length < 3) {
+    throw new Error("Generated argument body was empty.");
+  }
 
   const argId = crypto.randomUUID();
   const now = new Date().toISOString();
