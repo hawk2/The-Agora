@@ -10,6 +10,9 @@ const BOT_UI_ACTION_MAX_CLAIM_ATTEMPTS = 5;
 const PREDICT_SIDE_MAX_ATTEMPTS = 3;
 const SIDE_CLASSIFY_MAX_ATTEMPTS = 3;
 const SWITCH_DECISION_MAX_ATTEMPTS = 3;
+const DECISION_MAX_COMPLETION_TOKENS = 256;
+const ARGUMENT_MAX_COMPLETION_TOKENS = 1200;
+const NEW_POST_MAX_COMPLETION_TOKENS = 900;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -162,7 +165,7 @@ async function predictPaulSide(
     for (let i = 0; i < PREDICT_SIDE_MAX_ATTEMPTS; i++) {
       const msg = await ai.chat.completions.create({
         model: MODEL,
-        max_completion_tokens: 32,
+        max_completion_tokens: DECISION_MAX_COMPLETION_TOKENS,
         messages: [
           systemPrompt,
           {
@@ -293,7 +296,7 @@ async function classifyInitialSide(
     for (let i = 0; i < SIDE_CLASSIFY_MAX_ATTEMPTS; i++) {
       const msg = await ai.chat.completions.create({
         model: MODEL,
-        max_completion_tokens: 32,
+        max_completion_tokens: DECISION_MAX_COMPLETION_TOKENS,
         messages: [
           systemPrompt,
           {
@@ -340,7 +343,7 @@ async function shouldSwitchSide(
   for (let i = 0; i < SWITCH_DECISION_MAX_ATTEMPTS; i++) {
     const msg = await ai.chat.completions.create({
       model: MODEL,
-      max_completion_tokens: 32,
+      max_completion_tokens: DECISION_MAX_COMPLETION_TOKENS,
       messages: [
         {
           role: "system",
@@ -440,7 +443,7 @@ async function generateArgument(
     : persona.prompt_style;
   const msg = await ai.chat.completions.create({
     model: MODEL,
-    max_completion_tokens: 700,
+    max_completion_tokens: ARGUMENT_MAX_COMPLETION_TOKENS,
     messages: [
       { role: "system", content: systemPrompt },
       {
@@ -463,7 +466,7 @@ async function generateNewPost(
 ): Promise<{ title: string; body: string }> {
   const msg = await ai.chat.completions.create({
     model: MODEL,
-    max_completion_tokens: 700,
+    max_completion_tokens: NEW_POST_MAX_COMPLETION_TOKENS,
     messages: [
       { role: "system", content: persona.prompt_style },
       {

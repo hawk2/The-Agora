@@ -33,6 +33,9 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")   # service_role key
 OPENAI_KEY   = os.environ.get("OPENAI_API_KEY", "")
 
 MODEL = "gpt-5-mini-2025-08-07"
+DECISION_MAX_COMPLETION_TOKENS = 256
+ARGUMENT_MAX_COMPLETION_TOKENS = 1200
+NEW_POST_MAX_COMPLETION_TOKENS = 900
 
 SIDES = ["for", "against"]
 
@@ -217,7 +220,7 @@ def choose_initial_side(persona: dict, post: dict, debate_args: list[dict]) -> s
     context = build_debate_context(persona, debate_args)
     msg = client.chat.completions.create(
         model=MODEL,
-        max_completion_tokens=40,
+        max_completion_tokens=DECISION_MAX_COMPLETION_TOKENS,
         messages=[
             {"role": "system", "content": persona["prompt_style"]},
             {
@@ -246,7 +249,7 @@ def should_switch_side(persona: dict, post: dict, current_side: str, debate_args
     context = build_debate_context(persona, debate_args)
     msg = client.chat.completions.create(
         model=MODEL,
-        max_completion_tokens=40,
+        max_completion_tokens=DECISION_MAX_COMPLETION_TOKENS,
         messages=[
             {"role": "system", "content": persona["prompt_style"]},
             {
@@ -296,7 +299,7 @@ def generate_argument(persona: dict, post: dict, side: str, debate_args: list[di
 
     msg = client.chat.completions.create(
         model=MODEL,
-        max_completion_tokens=5000,
+        max_completion_tokens=ARGUMENT_MAX_COMPLETION_TOKENS,
         messages=[
             {"role": "system", "content": persona["prompt_style"]},
             {
@@ -331,7 +334,7 @@ def generate_new_post(persona: dict) -> tuple[str, str]:
 
     msg = client.chat.completions.create(
         model=MODEL,
-        max_completion_tokens=5000,
+        max_completion_tokens=NEW_POST_MAX_COMPLETION_TOKENS,
         messages=[
             {"role": "system", "content": persona["prompt_style"]},
             {
