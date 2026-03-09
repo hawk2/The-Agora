@@ -500,7 +500,9 @@
       flash('success', `Queued action #${result.id} (${result.persona} / ${result.action}).`);
       const trigger = await AgoraStore.triggerBotUiRunner(result.id);
       if (!trigger || trigger.ok === false) {
-        flash('warning', 'Action queued, but immediate runner trigger failed. It will run on the next bot invocation.');
+        const reason = (trigger && trigger.error) || AgoraStore.getLastError() || '';
+        const suffix = reason ? ` (${reason})` : '';
+        flash('warning', 'Action queued, but immediate runner trigger failed' + suffix + '. It will run on the next bot invocation.');
       }
       await loadActions();
     });

@@ -851,9 +851,13 @@ Deno.serve(async (req) => {
       throw new Error("Missing Supabase env vars (SUPABASE_URL and service role/anon key).");
     }
 
+    // If service role is present, keep full service-role context (do not override
+    // it with caller Authorization headers). Caller auth is only forwarded when
+    // service-role key is unavailable.
+    const forwardCallerAuth = !supabaseServiceRoleKey && !!requestAuth;
     const sb = createClient(supabaseUrl, supabaseKey, {
-      global: requestAuth
-        ? { headers: { Authorization: requestAuth } }
+      global: forwardCallerAuth
+        ? { headers: { Authorization: requestAuth! } }
         : undefined,
     });
     const requestedActionId = await parseRequestedActionId(req);
