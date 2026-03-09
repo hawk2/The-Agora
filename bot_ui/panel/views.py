@@ -117,6 +117,10 @@ def dashboard(request):
         action = (request.POST.get("action") or "argue").strip().lower()
         debate_id = (request.POST.get("debate_id") or "").strip() or None
         side_input = (request.POST.get("side") or "auto").strip().lower()
+        response_length_input = (request.POST.get("response_length") or "").strip()
+
+        valid_lengths = {"1", "2-3", "4-5", "6+"}
+        response_length = response_length_input if response_length_input in valid_lengths else None
 
         forced_side = side_input if side_input in {"for", "against"} else None
         if action != "argue":
@@ -135,6 +139,7 @@ def dashboard(request):
             action=action,
             debate_id=debate_id,
             forced_side=forced_side,
+            response_length=response_length,
         )
 
         if result.get("ok"):

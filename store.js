@@ -370,13 +370,15 @@
     return !!data;
   }
 
-  async function enqueueBotUiAction({ persona, action, debateId, forcedSide }) {
+  async function enqueueBotUiAction({ persona, action, debateId, forcedSide, responseLength }) {
     setLastError('', null);
+    const validLengths = ['1', '2-3', '4-5', '6+'];
     const payload = {
       persona: String(persona || '').trim(),
       action: String(action || '').trim().toLowerCase(),
       debate_id: debateId || null,
       forced_side: forcedSide || null,
+      response_length: validLengths.includes(responseLength) ? responseLength : '2-3',
     };
 
     const { data, error } = await db

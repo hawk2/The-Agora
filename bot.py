@@ -40,6 +40,20 @@ MODEL_EMPTY_RETRY_ATTEMPTS = 3
 
 SIDES = ["for", "against"]
 
+# Maps response_length values from the dashboard to prompt-friendly descriptions.
+RESPONSE_LENGTH_DESCRIPTIONS: dict[str, str] = {
+    "1":   "exactly 1 sentence",
+    "2-3": "2–3 sentences",
+    "4-5": "4–5 sentences",
+    "6+":  "6 or more sentences",
+}
+DEFAULT_RESPONSE_LENGTH = "2-3"
+
+
+def resolve_length_desc(response_length: Optional[str]) -> str:
+    key = str(response_length or "").strip()
+    return RESPONSE_LENGTH_DESCRIPTIONS.get(key, RESPONSE_LENGTH_DESCRIPTIONS[DEFAULT_RESPONSE_LENGTH])
+
 
 # ── Personas ─────────────────────────────────────────────────────────────────
 
@@ -54,7 +68,6 @@ PERSONAS = {
             "Be earnest, a little fired up, and human — not a caricature. "
             "Occasionally quote the Bible or appeal to 'what the Founders intended'. "
             "You're respectful but firm. No hedging. You mean it."
-            "One paragraph (max 7 sentences, average 2-4) maximum for posts or debate 'background and stakes'."
         ),
     },
     "AtheaReason": {
@@ -67,7 +80,6 @@ PERSONAS = {
             "You're sharp, a little self-righteous, but you always bring receipts. "
             "Use phrases like 'the data actually shows', 'that's a category error', 'empirically speaking'. "
             "Push for systemic solutions. Call out logical fallacies by name."
-            "One paragraph (max 7 sentences, average 2-4) maximum for posts or debate 'background and stakes'."
         ),
     },
     "VibezOfChaos": {
@@ -80,7 +92,6 @@ PERSONAS = {
             "Your takes are chaotic but they land — there's always a real point buried in the chaos. "
             "Mix dense philosophical references with meme-aware language. "
             "Be genuinely surprising. The goal is to reframe the debate entirely, not just argue a side."
-            "One paragraph (max 7 sentences, average 2-4) maximum for posts or debate 'background and stakes'."
         ),
     },
 }
@@ -344,12 +355,20 @@ def resolve_side(persona: dict, post: dict, debate_args: list[dict]) -> tuple[st
 
 # ── OpenAI content generation ─────────────────────────────────────────────────
 
-def generate_argument(persona: dict, post: dict, side: str, debate_args: list[dict], side_source: str) -> str:
+def generate_argument(
+    persona: dict,
+    post: dict,
+    side: str,
+    debate_args: list[dict],
+    side_source: str,
+    response_length: Optional[str] = None,
+) -> str:
     """Generate an argument body to post in an existing debate."""
     client = OpenAIClient(api_key=OPENAI_KEY)
     title  = post.get("title", "")
     body   = post.get("body", "")
     context = build_debate_context(persona, debate_args)
+    length_desc = resolve_length_desc(response_length)
     payload = [
         {"role": "system", "content": persona["prompt_style"]},
         {
@@ -367,7 +386,7 @@ def generate_argument(persona: dict, post: dict, side: str, debate_args: list[di
                 "No soft agreement language. "
                 "Include at least one sentence in this pattern: "
                 "\"<Author> said <claim>, but that's not right because <reason>.\"\n\n"
-                "Write your argument in exactly one paragraph (max 7 sentences, average 2-4). "
+                f"Write your argument in exactly one paragraph ({length_desc}). "
                 "No markdown. No headers. "
                 f"You must argue the {side.upper()} side."
                 "Argue hard. Make a real point. Be true to your character."
@@ -394,9 +413,10 @@ def generate_argument(persona: dict, post: dict, side: str, debate_args: list[di
     return build_fallback_argument(side, post)
 
 
-def generate_new_post(persona: dict) -> tuple[str, str]:
+def generate_new_post(persona: dict, response_length: Optional[str] = None) -> tuple[str, str]:
     """Generate a new debate post. Returns (title, body)."""
     client = OpenAIClient(api_key=OPENAI_KEY)
+    length_desc = resolve_length_desc(response_length)
 
     payload = [
         {"role": "system", "content": persona["prompt_style"]},
@@ -405,8 +425,8 @@ def generate_new_post(persona: dict) -> tuple[str, str]:
             "content": (
                 "Start a brand-new debate on a topic you genuinely care about. "
                 "Pick something political, ethical, or social — something real and contentious. "
-                "Format: first line is the TITLE only (no label), blank line, then exactly one paragraph "
-                "(max 7 sentences, average 2-4). "
+                f"Format: first line is the TITLE only (no label), blank line, then exactly one paragraph "
+                f"({length_desc}). "
                 "No markdown. Be opinionated. Don't be bland."
             ),
         },
@@ -443,17 +463,23 @@ def generate_new_post(persona: dict) -> tuple[str, str]:
 
 # ── Posting logic ─────────────────────────────────────────────────────────────
 
-def post_argument(sb: Client, persona: dict, post: dict, forced_side: Optional[str] = None) -> dict:
+def post_argument(
+    sb: Client,
+    persona: dict,
+    post: dict,
+    forced_side: Optional[str] = None,
+    response_length: Optional[str] = None,
+) -> dict:
     debate_args = get_debate_arguments(sb, str(post.get("id", "")))
     manual_side = normalize_side(forced_side)
     if manual_side:
         side, side_source = manual_side, "manual-override"
     else:
         side, side_source = resolve_side(persona, post, debate_args)
-    print(f"  [debug] side={side} source={side_source} args_in_context={len(debate_args)}")
+    print(f"  [debug] side={side} source={side_source} args_in_context={len(debate_args)} response_length={response_length or DEFAULT_RESPONSE_LENGTH}")
 
     try:
-        body = generate_argument(persona, post, side, debate_args, side_source)
+        body = generate_argument(persona, post, side, debate_args, side_source, response_length=response_length)
         now = datetime.now(timezone.utc).isoformat()
         arg_id = str(uuid4())
         sb.table("arguments").insert({
@@ -486,9 +512,9 @@ def post_argument(sb: Client, persona: dict, post: dict, forced_side: Optional[s
         }
 
 
-def post_new_debate(sb: Client, persona: dict) -> dict:
+def post_new_debate(sb: Client, persona: dict, response_length: Optional[str] = None) -> dict:
     try:
-        title, body = generate_new_post(persona)
+        title, body = generate_new_post(persona, response_length=response_length)
         now = datetime.now(timezone.utc).isoformat()
         post_id = str(uuid4())
         sb.table("posts").insert({
@@ -523,6 +549,7 @@ def execute_action(
     action: str,
     debate_id: Optional[str] = None,
     forced_side: Optional[str] = None,
+    response_length: Optional[str] = None,
 ) -> dict:
     if not OPENAI_KEY:
         return {"ok": False, "error": "OPENAI_API_KEY not set."}
@@ -540,7 +567,7 @@ def execute_action(
     ensure_persona_user(sb, persona)
 
     if action == "new":
-        return post_new_debate(sb, persona)
+        return post_new_debate(sb, persona, response_length=response_length)
 
     target = None
     if debate_id:
@@ -551,7 +578,7 @@ def execute_action(
     if not target:
         return {"ok": False, "error": "No debates available to argue on."}
 
-    return post_argument(sb, persona, target, forced_side=forced_side)
+    return post_argument(sb, persona, target, forced_side=forced_side, response_length=response_length)
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────

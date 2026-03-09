@@ -198,6 +198,18 @@
         </div>
 
         <div class="grid">
+          <div class="field" style="grid-column: 1 / -1;">
+            <label for="response_length">Response Length</label>
+            <select id="response_length" name="response_length">
+              <option value="1">1 sentence</option>
+              <option value="2-3" selected>2–3 sentences (default)</option>
+              <option value="4-5">4–5 sentences</option>
+              <option value="6+">6+ sentences</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid">
           <div class="field">
             <label for="persona">Persona</label>
             <select id="persona" name="persona" required></select>
@@ -473,6 +485,7 @@
       const debateId = (debateSelect.value || '').trim();
       const sideInput = (document.getElementById('side').value || 'auto').trim().toLowerCase();
       const forcedSide = sideInput === 'for' || sideInput === 'against' ? sideInput : null;
+      const responseLength = (document.getElementById('response_length').value || '2-3').trim();
 
       if (!persona || !PERSONAS[persona]) {
         flash('error', 'Invalid persona selected.');
@@ -489,6 +502,7 @@
         action,
         debateId: action === 'argue' ? debateId : null,
         forcedSide: action === 'argue' ? forcedSide : null,
+        responseLength,
       });
       runBtn.disabled = false;
 
